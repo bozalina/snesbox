@@ -1,122 +1,57 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snes", "Snes\Snes.csproj", "{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nall", "Nall\Nall.csproj", "{ADEF748A-A54F-4304-A450-8ECB45BE847B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nall", "Nall\Nall.csproj", "{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperGameBoy", "SuperGameBoy\SuperGameBoy.csproj", "{61CB9152-E7CE-4CFD-B48C-0538A1058A30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperGameBoy", "SuperGameBoy\SuperGameBoy.csproj", "{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snes", "Snes\Snes.csproj", "{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnesBox", "SnesBox\SnesBox\SnesBox.csproj", "{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnesBoxDesktop", "SnesBox\SnesBoxDesktop.csproj", "{C68867BE-27DE-48AB-B784-A18678781100}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnesBoxContent", "SnesBox\SnesBoxContent\SnesBoxContent.contentproj", "{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox 360 Copy of Nall", "Nall\Xbox 360 Copy of Nall.csproj", "{65872FD2-6709-4C87-9C82-03F7C3A716B1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox 360 Copy of Snes", "Snes\Xbox 360 Copy of Snes.csproj", "{D9C97372-B8FB-4508-93F0-FC502D629547}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbox 360 Copy of SnesBox", "SnesBox\SnesBox\Xbox 360 Copy of SnesBox.csproj", "{574B5712-B4F9-4BE2-94F7-CFA778A57A08}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnesBox.Content", "SnesBox.Content\SnesBox.Content.csproj", "{38C703C8-B19E-444D-A89D-C45181BF747F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Accuracy|x86 = Accuracy|x86
-		Accuracy|Xbox 360 = Accuracy|Xbox 360
-		Compatibility|x86 = Compatibility|x86
-		Compatibility|Xbox 360 = Compatibility|Xbox 360
-		Performance|x86 = Performance|x86
-		Performance|Xbox 360 = Performance|Xbox 360
+		Accuracy|Any CPU = Accuracy|Any CPU
+		Compatibility|Any CPU = Compatibility|Any CPU
+		Performance|Any CPU = Performance|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Accuracy|x86.ActiveCfg = Accuracy|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Accuracy|x86.Build.0 = Accuracy|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Accuracy|Xbox 360.ActiveCfg = Accuracy|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Accuracy|Xbox 360.Build.0 = Accuracy|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Compatibility|x86.ActiveCfg = Compatibility|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Compatibility|x86.Build.0 = Compatibility|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Compatibility|Xbox 360.ActiveCfg = Compatibility|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Compatibility|Xbox 360.Build.0 = Compatibility|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Performance|x86.ActiveCfg = Performance|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Performance|x86.Build.0 = Performance|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Performance|Xbox 360.ActiveCfg = Performance|x86
-		{B8F54CE1-2E10-4B34-ADA6-0D1E1B51CE94}.Performance|Xbox 360.Build.0 = Performance|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Accuracy|x86.ActiveCfg = Accuracy|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Accuracy|x86.Build.0 = Accuracy|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Accuracy|Xbox 360.ActiveCfg = Accuracy|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Accuracy|Xbox 360.Build.0 = Accuracy|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Compatibility|x86.ActiveCfg = Compatibility|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Compatibility|x86.Build.0 = Compatibility|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Compatibility|Xbox 360.ActiveCfg = Compatibility|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Compatibility|Xbox 360.Build.0 = Compatibility|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Performance|x86.ActiveCfg = Performance|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Performance|x86.Build.0 = Performance|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Performance|Xbox 360.ActiveCfg = Performance|x86
-		{F426E103-C770-4F1C-AEBE-99D46B3DDFEE}.Performance|Xbox 360.Build.0 = Performance|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Accuracy|x86.ActiveCfg = Accuracy|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Accuracy|x86.Build.0 = Accuracy|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Accuracy|Xbox 360.ActiveCfg = Accuracy|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Accuracy|Xbox 360.Build.0 = Accuracy|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Compatibility|x86.ActiveCfg = Compatibility|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Compatibility|x86.Build.0 = Compatibility|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Compatibility|Xbox 360.ActiveCfg = Compatibility|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Compatibility|Xbox 360.Build.0 = Compatibility|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Performance|x86.ActiveCfg = Performance|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Performance|x86.Build.0 = Performance|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Performance|Xbox 360.ActiveCfg = Performance|x86
-		{9A7FE3BF-9E2A-4F17-8CFF-A9B02D9B9C6E}.Performance|Xbox 360.Build.0 = Performance|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Accuracy|x86.ActiveCfg = Accuracy|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Accuracy|x86.Build.0 = Accuracy|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Accuracy|Xbox 360.ActiveCfg = Accuracy|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Accuracy|Xbox 360.Build.0 = Accuracy|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Compatibility|x86.ActiveCfg = Compatibility|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Compatibility|x86.Build.0 = Compatibility|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Compatibility|Xbox 360.ActiveCfg = Compatibility|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Compatibility|Xbox 360.Build.0 = Compatibility|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Performance|x86.ActiveCfg = Performance|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Performance|x86.Build.0 = Performance|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Performance|Xbox 360.ActiveCfg = Performance|x86
-		{6AA2D15E-CDB9-4F41-BA52-95DA7A2AA851}.Performance|Xbox 360.Build.0 = Performance|x86
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Accuracy|x86.ActiveCfg = Debug|Any CPU
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Accuracy|Xbox 360.ActiveCfg = Debug|Any CPU
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Compatibility|x86.ActiveCfg = Debug|Any CPU
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Compatibility|Xbox 360.ActiveCfg = Debug|Any CPU
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Performance|x86.ActiveCfg = Debug|Any CPU
-		{2CD4CA49-E0EF-486E-BC1B-13AE00D56F0D}.Performance|Xbox 360.ActiveCfg = Debug|Any CPU
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Accuracy|x86.ActiveCfg = Performance|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Accuracy|Xbox 360.ActiveCfg = Accuracy|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Accuracy|Xbox 360.Build.0 = Accuracy|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Compatibility|x86.ActiveCfg = Performance|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Compatibility|Xbox 360.ActiveCfg = Compatibility|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Compatibility|Xbox 360.Build.0 = Compatibility|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Performance|x86.ActiveCfg = Performance|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Performance|Xbox 360.ActiveCfg = Performance|Xbox 360
-		{65872FD2-6709-4C87-9C82-03F7C3A716B1}.Performance|Xbox 360.Build.0 = Performance|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Accuracy|x86.ActiveCfg = Performance|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Accuracy|Xbox 360.ActiveCfg = Accuracy|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Accuracy|Xbox 360.Build.0 = Accuracy|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Compatibility|x86.ActiveCfg = Performance|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Compatibility|Xbox 360.ActiveCfg = Compatibility|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Compatibility|Xbox 360.Build.0 = Compatibility|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Performance|x86.ActiveCfg = Performance|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Performance|Xbox 360.ActiveCfg = Performance|Xbox 360
-		{D9C97372-B8FB-4508-93F0-FC502D629547}.Performance|Xbox 360.Build.0 = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Accuracy|x86.ActiveCfg = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Accuracy|Xbox 360.ActiveCfg = Accuracy|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Accuracy|Xbox 360.Build.0 = Accuracy|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Accuracy|Xbox 360.Deploy.0 = Accuracy|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Compatibility|x86.ActiveCfg = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Compatibility|Xbox 360.ActiveCfg = Compatibility|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Compatibility|Xbox 360.Build.0 = Compatibility|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Compatibility|Xbox 360.Deploy.0 = Compatibility|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Performance|x86.ActiveCfg = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Performance|Xbox 360.ActiveCfg = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Performance|Xbox 360.Build.0 = Performance|Xbox 360
-		{574B5712-B4F9-4BE2-94F7-CFA778A57A08}.Performance|Xbox 360.Deploy.0 = Performance|Xbox 360
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Accuracy|Any CPU.ActiveCfg = Accuracy|Any CPU
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Accuracy|Any CPU.Build.0 = Accuracy|Any CPU
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Compatibility|Any CPU.ActiveCfg = Compatibility|Any CPU
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Compatibility|Any CPU.Build.0 = Compatibility|Any CPU
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Performance|Any CPU.ActiveCfg = Performance|Any CPU
+		{ADEF748A-A54F-4304-A450-8ECB45BE847B}.Performance|Any CPU.Build.0 = Performance|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Accuracy|Any CPU.ActiveCfg = Accuracy|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Accuracy|Any CPU.Build.0 = Accuracy|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Compatibility|Any CPU.ActiveCfg = Compatibility|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Compatibility|Any CPU.Build.0 = Compatibility|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Performance|Any CPU.ActiveCfg = Performance|Any CPU
+		{61CB9152-E7CE-4CFD-B48C-0538A1058A30}.Performance|Any CPU.Build.0 = Performance|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Accuracy|Any CPU.ActiveCfg = Accuracy|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Accuracy|Any CPU.Build.0 = Accuracy|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Compatibility|Any CPU.ActiveCfg = Compatibility|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Compatibility|Any CPU.Build.0 = Compatibility|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Performance|Any CPU.ActiveCfg = Performance|Any CPU
+		{77457716-D8F0-4D1D-9618-BA1FACCD5DA5}.Performance|Any CPU.Build.0 = Performance|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Accuracy|Any CPU.ActiveCfg = Accuracy|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Accuracy|Any CPU.Build.0 = Accuracy|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Compatibility|Any CPU.ActiveCfg = Compatibility|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Compatibility|Any CPU.Build.0 = Compatibility|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Performance|Any CPU.ActiveCfg = Performance|Any CPU
+		{C68867BE-27DE-48AB-B784-A18678781100}.Performance|Any CPU.Build.0 = Performance|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Accuracy|Any CPU.ActiveCfg = Accuracy|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Accuracy|Any CPU.Build.0 = Accuracy|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Compatibility|Any CPU.ActiveCfg = Compatibility|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Compatibility|Any CPU.Build.0 = Compatibility|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Performance|Any CPU.ActiveCfg = Performance|Any CPU
+		{38C703C8-B19E-444D-A89D-C45181BF747F}.Performance|Any CPU.Build.0 = Performance|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(SubversionScc) = preSolution
-		Svn-Managed = True
-		Manager = AnkhSVN - Subversion Support for Visual Studio
 	EndGlobalSection
 EndGlobal
