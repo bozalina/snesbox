@@ -4,13 +4,13 @@ namespace Snes
 {
 	public sealed class VideoRefreshEventArgs : EventArgs
 	{
-		public VideoRefreshEventArgs(int[] buffer, Tuple<int, int, int, int> destination)
+		public VideoRefreshEventArgs(ArraySegment<ushort> data, int width, int height)
 		{
-			Buffer = buffer;
-			Destination = destination;
+			Data = data;
+			Destination = Tuple.Create(0, 0, width, height);
 		}
 
-		public int[] Buffer { get; private set; }
+		public ArraySegment<ushort> Data { get; private set; }
 		public Tuple<int, int, int, int> Destination { get; private set; }
 	}
 }

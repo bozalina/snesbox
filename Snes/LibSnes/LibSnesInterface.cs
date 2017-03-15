@@ -12,7 +12,7 @@ namespace Snes
 		{
 			if (!ReferenceEquals(pvideo_refresh, null))
 			{
-				pvideo_refresh(null, Video.GetRefreshEventArgs(data, width, height));
+				pvideo_refresh(null, new VideoRefreshEventArgs(data, (int)width, (int)height));
 			}
 
 			if (!ReferenceEquals(paudio_sample, null))
@@ -53,45 +53,6 @@ namespace Snes
 		public event EventHandler<AudioRefreshEventArgs> paudio_sample;
 		public event EventHandler pinput_poll;
 		public event EventHandler<InputStateEventArgs> pinput_state;
-
-		private static class Video
-		{
-			private static readonly int[] _buffer;
-
-			static Video()
-			{
-				_buffer = new int[512 * 512 * 3];
-			}
-
-			public static VideoRefreshEventArgs GetRefreshEventArgs(ArraySegment<ushort> data,
-				uint width,
-				uint height)
-			{
-				bool interlace = height >= 240;
-				uint pitch = interlace ? 1024U : 2048U;
-				pitch >>= 1;
-
-				for (var y = 0; y < height; y++)
-				{
-					for (var x = 0; x < width; x++)
-					{
-						ushort color = data.Array[data.Offset + y * pitch + x];
-						int b = ((color >> 10) & 31) * 8;
-						int red = b + b / 35;
-						b = ((color >> 5) & 31) * 8;
-						int green = b + b / 35;
-						b = ((color >> 0) & 31) * 8;
-						int blue = b + b / 35;
-
-						_buffer[y * 512 + x] = red;
-						_buffer[y * 512 + x + 1] = green;
-						_buffer[y * 512 + x + 2] = blue;
-					}
-				}
-
-				return new VideoRefreshEventArgs(_buffer, Tuple.Create(0, 0, (int)width, (int)height));
-			}
-		}
 
 		private static class Audio
 		{
