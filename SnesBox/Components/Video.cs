@@ -82,11 +82,36 @@ namespace SnesBox.Components
 			_spriteBatch.End();
 		}
 
+		private readonly Color[] _buffer = new Color[512 * 512];
+
 		private void OnVideoRefresh(object sender, VideoRefreshEventArgs e)
 		{
 			GraphicsDevice.Textures[0] = null;
-			_frame.SetData(e.Buffer);
-			_frameRectangle = new Rectangle(e.Destination.Item1, e.Destination.Item2, e.Destination.Item3, e.Destination.Item4);
+
+			int width = e.Destination.Item3;
+			int height = e.Destination.Item4;
+			bool interlace = height >= 240;
+			uint pitch = interlace ? 1024U : 2048U;
+			pitch >>= 1;
+
+			for (var y = 0; y < height; y++)
+			{
+				for (var x = 0; x < width; x++)
+				{
+					ushort color = e.Data.Array[e.Data.Offset + y * pitch + x];
+					int b = ((color >> 10) & 31) * 8;
+					int red = b + b / 35;
+					b = ((color >> 5) & 31) * 8;
+					int green = b + b / 35;
+					b = ((color >> 0) & 31) * 8;
+					int blue = b + b / 35;
+
+					_buffer[y * 512 + x] = new Color(red, green, blue);
+				}
+			}
+
+			_frame.SetData(_buffer);
+			_frameRectangle = new Rectangle(e.Destination.Item1, e.Destination.Item2, width, height);
 		}
 	}
 }
