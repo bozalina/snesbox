@@ -1,0 +1,33 @@
+
+#----------------------------- Global Properties ----------------------------#
+
+/outputDir:bin/$(Platform)
+/intermediateDir:obj/$(Platform)
+/platform:DesktopGL
+/config:
+/profile:Reach
+/compress:False
+
+#-------------------------------- References --------------------------------#
+
+/reference:..\..\SnesBox.Content\bin\Release\SnesBox.Content.dll
+
+#---------------------------------- Content ---------------------------------#
+
+#begin ../../SnesBox/Content/HQ2x.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../SnesBox/Content/HQ2x.fx
+
+#begin ../../SnesBox/Content/None.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:../../SnesBox/Content/None.fx
+
+#begin ../../SnesBox/Content/Super Mario World (USA).sfc
+/importer:SFCCartridgeImpoter
+/processor:SFCCartridgeProcessor
+/build:../../SnesBox/Content/Super Mario World (USA).sfc
+

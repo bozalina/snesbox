@@ -56,6 +56,10 @@
     <Link>
       <AdditionalDependencies>$(MONO_PS4)\release-lib\libmono.a;$(MONO_PS4)\release-lib\libmonoiolayer.a;$(MONO_PS4)\release-lib\libmonoruntime.a;$(MONO_PS4)\release-lib\libmonoutils.a;$(MONO_PS4)\release-lib\eglib.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libScePosix_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceNet_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSysmodule_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSystemService_stub_weak.a;$(ProjectDir)..\..\aot\$(Configuration)\libaot.a;-lScePerf_stub_weak;$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\Release\scePlayStation4_stub.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /Y "$(ProjectDir)..\Content\SnesBox\Content" "$(TargetDir)Content\"
+xcopy /Y "$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\$(Configuration)\scePlayStation4.prx" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
     <ClCompile>
@@ -68,6 +72,10 @@
     <Link>
       <AdditionalDependencies>$(MONO_PS4)\release-lib\libmono.a;$(MONO_PS4)\release-lib\libmonoiolayer.a;$(MONO_PS4)\release-lib\libmonoruntime.a;$(MONO_PS4)\release-lib\libmonoutils.a;$(MONO_PS4)\release-lib\eglib.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libScePosix_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceNet_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSysmodule_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSystemService_stub_weak.a;$(ProjectDir)..\..\aot\$(Configuration)\libaot.a;-lScePerf_stub_weak;$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\Release\scePlayStation4_stub.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /Y "$(ProjectDir)..\Content\SnesBox\Content" "$(TargetDir)Content\"
+xcopy /Y "$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\$(Configuration)\scePlayStation4.prx" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
