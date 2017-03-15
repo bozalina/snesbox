@@ -11,9 +11,16 @@ namespace SnesBox
 		public SnesBoxGame()
 		{
 			IsFixedTimeStep = false;
-			GraphicsDeviceManager = new GraphicsDeviceManager(this);
-			GraphicsDeviceManager.PreferredBackBufferWidth = 800;
-			GraphicsDeviceManager.PreferredBackBufferHeight = 600;
+			GraphicsDeviceManager = new GraphicsDeviceManager(this)
+			{
+#if PLAYSTATION4
+				PreferredBackBufferWidth = 1920,
+				PreferredBackBufferHeight = 1080
+#else
+				PreferredBackBufferWidth = 800,
+				PreferredBackBufferHeight = 600
+#endif
+			};
 			GraphicsDeviceManager.ApplyChanges();
 
 			Content.RootDirectory = "Content";

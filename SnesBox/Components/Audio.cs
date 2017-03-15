@@ -5,24 +5,30 @@ using Snes;
 
 namespace SnesBox.Components
 {
-    class Audio : GameComponent
-    {
-        private DynamicSoundEffectInstance _audioFrame = new DynamicSoundEffectInstance(32040, AudioChannels.Stereo);
+	internal sealed class Audio : GameComponent
+	{
+#if !PLAYSTATION4
+		private readonly DynamicSoundEffectInstance _audioFrame = new DynamicSoundEffectInstance(32040,
+			AudioChannels.Stereo);
+#endif
 
-        public Audio(Game game)
-            : base(game)
-        {
-            LibSnes.AudioRefresh += new EventHandler<AudioRefreshEventArgs>(OnAudioRefresh);
-        }
+		public Audio(Game game) : base(game)
+		{
+			LibSnes.AudioRefresh += OnAudioRefresh;
+		}
 
-        public override void Initialize()
-        {
-            _audioFrame.Play();
-        }
+		public override void Initialize()
+		{
+#if !PLAYSTATION4
+			_audioFrame.Play();
+#endif
+		}
 
-        private void OnAudioRefresh(object sender, AudioRefreshEventArgs e)
-        {
-            _audioFrame.SubmitBuffer(e.Buffer, 0, e.Buffer.Length);
-        }
-    }
+		private void OnAudioRefresh(object sender, AudioRefreshEventArgs e)
+		{
+#if !PLAYSTATION4
+			_audioFrame.SubmitBuffer(e.Buffer, 0, e.Buffer.Length);
+#endif
+		}
+	}
 }

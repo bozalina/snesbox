@@ -32,10 +32,10 @@ namespace Snes
 
         static LibSnes()
         {
-            LibSnesInterface.inter.pvideo_refresh += new EventHandler<VideoRefreshEventArgs>(inter_pvideo_refresh);
-            LibSnesInterface.inter.paudio_sample += new EventHandler<AudioRefreshEventArgs>(inter_paudio_sample);
-            LibSnesInterface.inter.pinput_poll += new EventHandler(inter_pinput_poll);
-            LibSnesInterface.inter.pinput_state += new EventHandler<InputStateEventArgs>(inter_pinput_state);
+            LibSnesInterface.Inter.pvideo_refresh += new EventHandler<VideoRefreshEventArgs>(inter_pvideo_refresh);
+            LibSnesInterface.Inter.paudio_sample += new EventHandler<AudioRefreshEventArgs>(inter_paudio_sample);
+            LibSnesInterface.Inter.pinput_poll += new EventHandler(inter_pinput_poll);
+            LibSnesInterface.Inter.pinput_state += new EventHandler<InputStateEventArgs>(inter_pinput_state);
         }
 
         static void inter_pvideo_refresh(object sender, VideoRefreshEventArgs e)
@@ -82,7 +82,7 @@ namespace Snes
 
         public static void Init()
         {
-            System.system.init(LibSnesInterface.inter);
+            System.system.init(LibSnesInterface.Inter);
             Input.input.port_set_device(Convert.ToBoolean(0), Input.Device.Joypad);
             Input.input.port_set_device(Convert.ToBoolean(1), Input.Device.Joypad);
         }

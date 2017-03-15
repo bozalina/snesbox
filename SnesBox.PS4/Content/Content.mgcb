@@ -3,31 +3,31 @@
 
 /outputDir:bin/$(Platform)
 /intermediateDir:obj/$(Platform)
-/platform:DesktopGL
+/platform:PlayStation4
 /config:
 /profile:Reach
 /compress:False
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\SnesBox.Content\bin\Performance\SnesBox.Content.dll
+/reference:..\..\SnesBox.Content\bin\Release\SnesBox.Content.dll
 
 #---------------------------------- Content ---------------------------------#
 
-#begin HQ2x.fx
+#begin ../../SnesBox/Content/HQ2x.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:HQ2x.fx
+/build:../../SnesBox/Content/HQ2x.fx
 
-#begin None.fx
+#begin ../../SnesBox/Content/None.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:None.fx
+/build:../../SnesBox/Content/None.fx
 
-#begin Super Mario World (USA).sfc
+#begin ../../SnesBox/Content/Super Mario World (USA).sfc
 /importer:SFCCartridgeImpoter
 /processor:SFCCartridgeProcessor
-/build:Super Mario World (USA).sfc
+/build:../../SnesBox/Content/Super Mario World (USA).sfc
 

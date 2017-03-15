@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ORBIS">
+      <Configuration>Debug</Configuration>
+      <Platform>ORBIS</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ORBIS">
+      <Configuration>Release</Configuration>
+      <Platform>ORBIS</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
+    <ProjectGuid>{779A9B89-A15C-4028-9587-966EC292783A}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(DebuggerFlavor)'=='ORBISDebugger'" Label="OverrideDebuggerDefaults">
+    <!--LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand-->
+    <!--LocalDebuggerCommandArguments></LocalDebuggerCommandArguments-->
+    <!--LocalDebuggerTarget></LocalDebuggerTarget-->
+    <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
+    <!--LocalRunCommandLine></LocalRunCommandLine-->
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ORBIS'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OptimizationLevel>Level2</OptimizationLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);aot\$(Configuration)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(MONO_PS4)\release-lib\libmono.a;$(MONO_PS4)\release-lib\libmonoiolayer.a;$(MONO_PS4)\release-lib\libmonoruntime.a;$(MONO_PS4)\release-lib\libmonoutils.a;$(MONO_PS4)\release-lib\eglib.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libScePosix_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceNet_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSysmodule_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSystemService_stub_weak.a;$(ProjectDir)..\..\aot\$(Configuration)\libaot.a;-lScePerf_stub_weak;$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\Release\scePlayStation4_stub.a;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ORBIS'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OptimizationLevel>Level0</OptimizationLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);aot\$(Configuration)</AdditionalIncludeDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(MONO_PS4)\release-lib\libmono.a;$(MONO_PS4)\release-lib\libmonoiolayer.a;$(MONO_PS4)\release-lib\libmonoruntime.a;$(MONO_PS4)\release-lib\libmonoutils.a;$(MONO_PS4)\release-lib\eglib.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libScePosix_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceNet_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSysmodule_stub_weak.a;$(SCE_ORBIS_SDK_DIR)\target\lib\libSceSystemService_stub_weak.a;$(ProjectDir)..\..\aot\$(Configuration)\libaot.a;-lScePerf_stub_weak;$(ProjectDir)..\..\..\MonoGame.PS4\ThirdParty\Sony\scePlayStation4\bin\Release\scePlayStation4_stub.a;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+  </ItemGroup>
+  <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <!-- Copy content and PRX files over from the game project -->
+  <ItemGroup>
+    <ContentFiles Include="..\bin\PS4\$(Configuration)\Content\**\*.*" />
+    <PrxFiles Include="..\bin\PS4\$(Configuration)\*.prx" />
+  </ItemGroup>
+  <Target Name="ContentFilesCopy" AfterTargets="Build" Inputs="@(ContentFiles)" Outputs="$(OutputPath)Content\%(RecursiveDir)%(Filename)%(Extension)">
+    <Copy SourceFiles="@(ContentFiles)" DestinationFolder="$(OutputPath)Content\%(RecursiveDir)" />
+  </Target>
+  <Target Name="PrxFilesCopy" AfterTargets="Build" Inputs="@(PrxFiles)" Outputs="$(OutputPath)%(Filename)%(Extension)">
+    <Copy SourceFiles="@(PrxFiles)" DestinationFolder="$(OutputPath)" />
+  </Target>
+</Project>

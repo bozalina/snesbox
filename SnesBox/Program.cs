@@ -12,9 +12,9 @@ namespace SnesBox
 		/// The main entry point for the application.
 		/// </summary>
 		[STAThread]
-		private static void Main(string[] args)
+		private static void Main()
 		{
-			using (var game = new SnesBoxGame { CartridgeName = args[0] })
+			using (var game = new SnesBoxGame { CartridgeName = "Super Mario World (USA)" })
 			{
 				game.Run();
 			}
