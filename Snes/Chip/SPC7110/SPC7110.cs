@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -24,8 +25,8 @@ namespace Snes
         public void update_time(int offset) { throw new NotImplementedException(); }
         public DateTime create_time() { throw new NotImplementedException(); }
 
-        public byte mmio_read(uint addr) { throw new NotImplementedException(); }
-        public void mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public Task<byte> mmio_read(uint addr) { throw new NotImplementedException(); }
+        public Task mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
 
         //spc7110decomp
         public void decomp_init() { throw new NotImplementedException(); }

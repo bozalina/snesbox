@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
 {
     abstract partial class CPUCore
     {
-        public byte op_readpc()
+        public async Task<byte> op_readpc()
         {
-            return op_read((uint)((regs.pc.b << 16) + regs.pc.w++));
+            return await op_read((uint)((regs.pc.b << 16) + regs.pc.w++));
         }
 
-        public byte op_readstack()
+        public async Task<byte> op_readstack()
         {
             if (regs.e)
             {
@@ -20,54 +21,54 @@ namespace Snes
             {
                 regs.s.w++;
             }
-            return op_read(regs.s.w);
+            return await op_read(regs.s.w);
         }
 
-        public byte op_readstackn()
+        public async Task<byte> op_readstackn()
         {
-            return op_read(++regs.s.w);
+            return await op_read(++regs.s.w);
         }
 
-        public byte op_readaddr(uint addr)
+        public async Task<byte> op_readaddr(uint addr)
         {
-            return op_read(addr & 0xffff);
+            return await op_read(addr & 0xffff);
         }
 
-        public byte op_readlong(uint addr)
+        public async Task<byte> op_readlong(uint addr)
         {
-            return op_read(addr & 0xffffff);
+            return await op_read(addr & 0xffffff);
         }
 
-        public byte op_readdbr(uint addr)
+        public async Task<byte> op_readdbr(uint addr)
         {
-            return op_read((uint)(((regs.db << 16) + addr) & 0xffffff));
+            return await op_read((uint)(((regs.db << 16) + addr) & 0xffffff));
         }
 
-        public byte op_readpbr(uint addr)
+        public async Task<byte> op_readpbr(uint addr)
         {
-            return op_read((uint)((regs.pc.b << 16) + (addr & 0xffff)));
+            return await op_read((uint)((regs.pc.b << 16) + (addr & 0xffff)));
         }
 
-        public byte op_readdp(uint addr)
+        public async Task<byte> op_readdp(uint addr)
         {
             if (regs.e && regs.d.l == 0x00)
             {
-                return op_read((regs.d & 0xff00) + ((regs.d + (addr & 0xffff)) & 0xff));
+                return await op_read((regs.d & 0xff00) + ((regs.d + (addr & 0xffff)) & 0xff));
             }
             else
             {
-                return op_read((regs.d + (addr & 0xffff)) & 0xffff);
+                return await op_read((regs.d + (addr & 0xffff)) & 0xffff);
             }
         }
 
-        public byte op_readsp(uint addr)
+        public async Task<byte> op_readsp(uint addr)
         {
-            return op_read((regs.s + (addr & 0xffff)) & 0xffff);
+            return await op_read((regs.s + (addr & 0xffff)) & 0xffff);
         }
 
-        public void op_writestack(byte data)
+        public async Task op_writestack(byte data)
         {
-            op_write(regs.s.w, data);
+            await op_write(regs.s.w, data);
             if (regs.e)
             {
                 regs.s.l--;
@@ -76,52 +77,51 @@ namespace Snes
             {
                 regs.s.w--;
             }
+		}
 
-        }
-
-        public void op_writestackn(byte data)
+		public async Task op_writestackn(byte data)
         {
-            op_write(regs.s.w--, data);
-        }
+            await op_write(regs.s.w--, data);
+		}
 
-        public void op_writeaddr(uint addr, byte data)
+		public async Task op_writeaddr(uint addr, byte data)
         {
-            op_write(addr & 0xffff, data);
-        }
+            await op_write(addr & 0xffff, data);
+		}
 
-        public void op_writelong(uint addr, byte data)
+		public async Task op_writelong(uint addr, byte data)
         {
-            op_write(addr & 0xffffff, data);
-        }
+            await op_write(addr & 0xffffff, data);
+		}
 
-        public void op_writedbr(uint addr, byte data)
+		public async Task op_writedbr(uint addr, byte data)
         {
-            op_write((uint)(((regs.db << 16) + addr) & 0xffffff), data);
-        }
+            await op_write((uint)(((regs.db << 16) + addr) & 0xffffff), data);
+		}
 
-        public void op_writepbr(uint addr, byte data)
+		public async Task op_writepbr(uint addr, byte data)
         {
-            op_write((uint)((regs.pc.b << 16) + (addr & 0xffff)), data);
-        }
+            await op_write((uint)((regs.pc.b << 16) + (addr & 0xffff)), data);
+		}
 
-        public void op_writedp(uint addr, byte data)
+		public async Task op_writedp(uint addr, byte data)
         {
             if (regs.e && regs.d.l == 0x00)
             {
-                op_write((regs.d & 0xff00) + ((regs.d + (addr & 0xffff)) & 0xff), data);
+                await op_write((regs.d & 0xff00) + ((regs.d + (addr & 0xffff)) & 0xff), data);
             }
             else
             {
-                op_write((regs.d + (addr & 0xffff)) & 0xffff, data);
+				await op_write((regs.d + (addr & 0xffff)) & 0xffff, data);
             }
         }
 
-        public void op_writesp(uint addr, byte data)
+        public async Task op_writesp(uint addr, byte data)
         {
-            op_write((regs.s + (addr & 0xffff)) & 0xffff, data);
-        }
+			await op_write((regs.s + (addr & 0xffff)) & 0xffff, data);
+		}
 
-        public enum OpType { DP = 0, DPX, DPY, IDP, IDPX, IDPY, ILDP, ILDPY, ADDR, ADDRX, ADDRY, IADDRX, ILADDR, LONG, LONGX, SR, ISRY, ADDR_PC, IADDR_PC, RELB, RELW }
+		public enum OpType { DP = 0, DPX, DPY, IDP, IDPX, IDPY, ILDP, ILDPY, ADDR, ADDRX, ADDRY, IADDRX, ILADDR, LONG, LONGX, SR, ISRY, ADDR_PC, IADDR_PC, RELB, RELW }
 
         private static Reg24 pc = new Reg24();
 
@@ -150,18 +150,18 @@ namespace Snes
             return regs.e || regs.p.x;
         }
 
-        public void disassemble_opcode(out string s, uint addr)
+        public async Task<string> disassemble_opcode(uint addr)
         {
             pc.d = addr;
-            s = string.Format("{0:X6} ", ((uint)pc.d));
+            string s = string.Format("{0:X6} ", ((uint)pc.d));
 
-            byte op = dreadb(pc.d);
+            byte op = await dreadb(pc.d);
             pc.w++;
-            byte op0 = dreadb(pc.d);
+            byte op0 = await dreadb(pc.d);
             pc.w++;
-            byte op1 = dreadb(pc.d);
+            byte op1 = await dreadb(pc.d);
             pc.w++;
-            byte op2 = dreadb(pc.d);
+            byte op2 = await dreadb(pc.d);
 
             switch (op)
             {
@@ -221,7 +221,7 @@ namespace Snes
                     s += string.Format("ora ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0x10:
-                    s += string.Format("bpl ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bpl ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x11:
                     s += string.Format("ora (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -324,7 +324,7 @@ namespace Snes
                     s += string.Format("and ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0x30:
-                    s += string.Format("bmi ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bmi ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x31:
                     s += string.Format("and (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -427,7 +427,7 @@ namespace Snes
                     s += string.Format("eor ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0x50:
-                    s += string.Format("bvc ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bvc ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x51:
                     s += string.Format("eor (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -530,7 +530,7 @@ namespace Snes
                     s += string.Format("adc ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0x70:
-                    s += string.Format("bvs ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bvs ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x71:
                     s += string.Format("adc (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -578,13 +578,13 @@ namespace Snes
                     s += string.Format("adc ${0:X6},x [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONGX, op24(op0, op1, op2)));
                     break;
                 case 0x80:
-                    s += string.Format("bra ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bra ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x81:
                     s += string.Format("sta (${0:X2},x)   [{1:X6}]", op8(op0), decode((byte)OpType.IDPX, op8(op0)));
                     break;
                 case 0x82:
-                    s += string.Format("brl ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELW, op16(op0, op1))), decode((byte)OpType.RELW, op16(op0, op1)));
+                    s += string.Format("brl ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELW, op16(op0, op1))), decode((byte)OpType.RELW, op16(op0, op1)));
                     break;
                 case 0x83:
                     s += string.Format("sta ${0:X2},s     [{1:X6}]", op8(op0), decode((byte)OpType.SR, op8(op0)));
@@ -633,7 +633,7 @@ namespace Snes
                     s += string.Format("sta ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0x90:
-                    s += string.Format("bcc ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bcc ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0x91:
                     s += string.Format("sta (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -750,7 +750,7 @@ namespace Snes
                     s += string.Format("lda ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0xb0:
-                    s += string.Format("bcs ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bcs ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0xb1:
                     s += string.Format("lda (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -860,7 +860,7 @@ namespace Snes
                     s += string.Format("cmp ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0xd0:
-                    s += string.Format("bne ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("bne ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0xd1:
                     s += string.Format("cmp (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -970,7 +970,7 @@ namespace Snes
                     s += string.Format("sbc ${0:X6}   [{1:X6}]", op24(op0, op1, op2), decode((byte)OpType.LONG, op24(op0, op1, op2)));
                     break;
                 case 0xf0:
-                    s += string.Format("beq ${0:X4}     [{1:X6}]", (ushort)(decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
+                    s += string.Format("beq ${0:X4}     [{1:X6}]", (ushort)(await decode((byte)OpType.RELB, op8(op0))), decode((byte)OpType.RELB, op8(op0)));
                     break;
                 case 0xf1:
                     s += string.Format("sbc (${0:X2}),y   [{1:X6}]", op8(op0), decode((byte)OpType.IDPY, op8(op0)));
@@ -1044,9 +1044,10 @@ namespace Snes
             s += " ";
 
             s += string.Format("V:{0:##0} H:{1:###0}", CPU.cpu.PPUCounter.vcounter(), CPU.cpu.PPUCounter.hcounter());
+	        return s;
         }
 
-        public byte dreadb(uint addr)
+        public async Task<byte> dreadb(uint addr)
         {
             if ((addr & 0x40ffff) >= 0x2000 && (addr & 0x40ffff) <= 0x5fff)
             {
@@ -1054,27 +1055,27 @@ namespace Snes
                 //do not read MMIO registers within debugger
                 return 0x00;
             }
-            return Bus.bus.read(new uint24(addr));
+            return await Bus.bus.read(new uint24(addr));
         }
 
-        public ushort dreadw(uint addr)
+        public async Task<ushort> dreadw(uint addr)
         {
             ushort r;
-            r = (ushort)(dreadb((addr + 0) & 0xffffff) << 0);
-            r |= (ushort)(dreadb((addr + 1) & 0xffffff) << 8);
+            r = (ushort)(await dreadb((addr + 0) & 0xffffff) << 0);
+            r |= (ushort)(await dreadb((addr + 1) & 0xffffff) << 8);
             return r;
         }
 
-        public uint dreadl(uint addr)
+        public async Task<uint> dreadl(uint addr)
         {
             uint r;
-            r = (uint)(dreadb((addr + 0) & 0xffffff) << 0);
-            r |= (uint)(dreadb((addr + 1) & 0xffffff) << 8);
-            r |= (uint)(dreadb((addr + 2) & 0xffffff) << 16);
+            r = (uint)(await dreadb((addr + 0) & 0xffffff) << 0);
+            r |= (uint)(await dreadb((addr + 1) & 0xffffff) << 8);
+            r |= (uint)(await dreadb((addr + 2) & 0xffffff) << 16);
             return r;
         }
 
-        public uint decode(byte offset_type, uint addr)
+        public async Task<uint> decode(byte offset_type, uint addr)
         {
             uint r = 0;
 
@@ -1091,23 +1092,23 @@ namespace Snes
                     break;
                 case OpType.IDP:
                     addr = (regs.d + (addr & 0xffff)) & 0xffff;
-                    r = (uint)((regs.db << 16) + dreadw(addr));
+                    r = (uint)((regs.db << 16) + await dreadw(addr));
                     break;
                 case OpType.IDPX:
                     addr = ((uint)regs.d + (uint)regs.x + (addr & 0xffff)) & 0xffff;
-                    r = (uint)((regs.db << 16) + dreadw(addr));
+                    r = (uint)((regs.db << 16) + await dreadw(addr));
                     break;
                 case OpType.IDPY:
                     addr = (regs.d + (addr & 0xffff)) & 0xffff;
-                    r = (uint)((regs.db << 16) + dreadw(addr) + (uint)regs.y);
+                    r = (uint)((regs.db << 16) + await dreadw(addr) + (uint)regs.y);
                     break;
                 case OpType.ILDP:
                     addr = (regs.d + (addr & 0xffff)) & 0xffff;
-                    r = dreadl(addr);
+                    r = await dreadl(addr);
                     break;
                 case OpType.ILDPY:
                     addr = (regs.d + (addr & 0xffff)) & 0xffff;
-                    r = dreadl(addr) + (uint)regs.y;
+                    r = await dreadl(addr) + (uint)regs.y;
                     break;
                 case OpType.ADDR:
                     r = (uint)((regs.db << 16) + (addr & 0xffff));
@@ -1141,7 +1142,7 @@ namespace Snes
                     break;
                 case OpType.ISRY:
                     addr = (regs.s + (addr & 0xff)) & 0xffff;
-                    r = (uint)((regs.db << 16) + dreadw(addr) + (uint)regs.y);
+                    r = (uint)((regs.db << 16) + await dreadw(addr) + (uint)regs.y);
                     break;
                 case OpType.RELB:
                     r = (uint)((regs.pc.b << 16) + ((regs.pc.w + 2) & 0xffff));
@@ -1177,11 +1178,11 @@ namespace Snes
             2, 2, 2, 2, 3, 2, 2, 2, 1, 3, 1, 1, 3, 3, 3, 4   //0xfn
         };
 
-        public byte opcode_length()
+        public async Task<byte> opcode_length()
         {
             byte op, len;
 
-            op = dreadb(regs.pc.d);
+            op = await dreadb(regs.pc.d);
             len = op_len_tbl[op];
             if (len == 5)
             {
@@ -1199,50 +1200,50 @@ namespace Snes
         public Reg24 rd = new Reg24();
         public byte sp, dp;
 
-        public abstract void op_io();
-        public abstract byte op_read(uint addr);
-        public abstract void op_write(uint addr, byte data);
+        public abstract Task op_io();
+        public abstract Task<byte> op_read(uint addr);
+        public abstract Task op_write(uint addr, byte data);
         public abstract void last_cycle();
         public abstract bool interrupt_pending();
 
-        public void op_io_irq()
+        public async Task op_io_irq()
         {
             if (interrupt_pending())
             {
                 //modify I/O cycle to bus read cycle, do not increment PC
-                op_read(regs.pc.d);
+                await op_read(regs.pc.d);
             }
             else
             {
-                op_io();
+                await op_io();
             }
-        }
+		}
 
-        public void op_io_cond2()
+		public async Task op_io_cond2()
         {
             if (regs.d.l != 0x00)
             {
-                op_io();
+                await op_io();
             }
-        }
+		}
 
-        public void op_io_cond4(ushort x, ushort y)
+		public async Task op_io_cond4(ushort x, ushort y)
         {
             if (!regs.p.x || (x & 0xff00) != (y & 0xff00))
             {
-                op_io();
+                await op_io();
             }
-        }
+		}
 
-        public void op_io_cond6(ushort addr)
+		public async Task op_io_cond6(ushort addr)
         {
             if (regs.e && (regs.pc.w & 0xff00) != (addr & 0xff00))
             {
-                op_io();
+                await op_io();
             }
-        }
+		}
 
-        public void op_adc_b(CPUCoreOpArgument args)
+		public Task op_adc_b(CPUCoreOpArgument args)
         {
             int result;
 
@@ -1271,9 +1272,10 @@ namespace Snes
             regs.p.z = (byte)result == 0;
 
             regs.a.l = (byte)result;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_adc_w(CPUCoreOpArgument args)
+		public Task op_adc_w(CPUCoreOpArgument args)
         {
             int result;
 
@@ -1314,155 +1316,176 @@ namespace Snes
             regs.p.z = (ushort)result == 0;
 
             regs.a.w = (ushort)result;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_and_b(CPUCoreOpArgument args)
+		public Task op_and_b(CPUCoreOpArgument args)
         {
             regs.a.l &= rd.l;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = regs.a.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_and_w(CPUCoreOpArgument args)
+		public Task op_and_w(CPUCoreOpArgument args)
         {
             regs.a.w &= rd.w;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = regs.a.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_bit_b(CPUCoreOpArgument args)
+		public Task op_bit_b(CPUCoreOpArgument args)
         {
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.v = Convert.ToBoolean(rd.l & 0x40);
             regs.p.z = (rd.l & regs.a.l) == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_bit_w(CPUCoreOpArgument args)
+		public Task op_bit_w(CPUCoreOpArgument args)
         {
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.v = Convert.ToBoolean(rd.w & 0x4000);
             regs.p.z = (rd.w & regs.a.w) == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cmp_b(CPUCoreOpArgument args)
+		public Task op_cmp_b(CPUCoreOpArgument args)
         {
             int r = regs.a.l - rd.l;
             regs.p.n = Convert.ToBoolean(r & 0x80);
             regs.p.z = (byte)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cmp_w(CPUCoreOpArgument args)
+		public Task op_cmp_w(CPUCoreOpArgument args)
         {
             int r = regs.a.w - rd.w;
             regs.p.n = Convert.ToBoolean(r & 0x8000);
             regs.p.z = (ushort)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cpx_b(CPUCoreOpArgument args)
+		public Task op_cpx_b(CPUCoreOpArgument args)
         {
             int r = regs.x.l - rd.l;
             regs.p.n = Convert.ToBoolean(r & 0x80);
             regs.p.z = (byte)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cpx_w(CPUCoreOpArgument args)
+		public Task op_cpx_w(CPUCoreOpArgument args)
         {
             int r = regs.x.w - rd.w;
             regs.p.n = Convert.ToBoolean(r & 0x8000);
             regs.p.z = (ushort)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cpy_b(CPUCoreOpArgument args)
+		public Task op_cpy_b(CPUCoreOpArgument args)
         {
             int r = regs.y.l - rd.l;
             regs.p.n = Convert.ToBoolean(r & 0x80);
             regs.p.z = (byte)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_cpy_w(CPUCoreOpArgument args)
+		public Task op_cpy_w(CPUCoreOpArgument args)
         {
             int r = regs.y.w - rd.w;
             regs.p.n = Convert.ToBoolean(r & 0x8000);
             regs.p.z = (ushort)r == 0;
             regs.p.c = r >= 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_eor_b(CPUCoreOpArgument args)
+		public Task op_eor_b(CPUCoreOpArgument args)
         {
             regs.a.l ^= rd.l;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = regs.a.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_eor_w(CPUCoreOpArgument args)
+		public Task op_eor_w(CPUCoreOpArgument args)
         {
             regs.a.w ^= rd.w;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = regs.a.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_lda_b(CPUCoreOpArgument args)
+		public Task op_lda_b(CPUCoreOpArgument args)
         {
             regs.a.l = rd.l;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = regs.a.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_lda_w(CPUCoreOpArgument args)
+		public Task op_lda_w(CPUCoreOpArgument args)
         {
             regs.a.w = rd.w;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = regs.a.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ldx_b(CPUCoreOpArgument args)
+		public Task op_ldx_b(CPUCoreOpArgument args)
         {
             regs.x.l = rd.l;
             regs.p.n = Convert.ToBoolean(regs.x.l & 0x80);
             regs.p.z = regs.x.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ldx_w(CPUCoreOpArgument args)
+		public Task op_ldx_w(CPUCoreOpArgument args)
         {
             regs.x.w = rd.w;
             regs.p.n = Convert.ToBoolean(regs.x.w & 0x8000);
             regs.p.z = regs.x.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ldy_b(CPUCoreOpArgument args)
+		public Task op_ldy_b(CPUCoreOpArgument args)
         {
             regs.y.l = rd.l;
             regs.p.n = Convert.ToBoolean(regs.y.l & 0x80);
             regs.p.z = regs.y.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ldy_w(CPUCoreOpArgument args)
+		public Task op_ldy_w(CPUCoreOpArgument args)
         {
             regs.y.w = rd.w;
             regs.p.n = Convert.ToBoolean(regs.y.w & 0x8000);
             regs.p.z = regs.y.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ora_b(CPUCoreOpArgument args)
+		public Task op_ora_b(CPUCoreOpArgument args)
         {
             regs.a.l |= rd.l;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = regs.a.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ora_w(CPUCoreOpArgument args)
+		public Task op_ora_w(CPUCoreOpArgument args)
         {
             regs.a.w |= rd.w;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = regs.a.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_sbc_b(CPUCoreOpArgument args)
+		public Task op_sbc_b(CPUCoreOpArgument args)
         {
             int result;
             rd.l ^= 0xff;
@@ -1492,9 +1515,10 @@ namespace Snes
             regs.p.z = (byte)result == 0;
 
             regs.a.l = (byte)result;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_sbc_w(CPUCoreOpArgument args)
+		public Task op_sbc_w(CPUCoreOpArgument args)
         {
             int result;
             rd.w ^= 0xffff;
@@ -1536,1315 +1560,1332 @@ namespace Snes
             regs.p.z = (ushort)result == 0;
 
             regs.a.w = (ushort)result;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_inc_b(CPUCoreOpArgument args)
+		public Task op_inc_b(CPUCoreOpArgument args)
         {
             rd.l++;
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_inc_w(CPUCoreOpArgument args)
+		public Task op_inc_w(CPUCoreOpArgument args)
         {
             rd.w++;
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_dec_b(CPUCoreOpArgument args)
+		public Task op_dec_b(CPUCoreOpArgument args)
         {
             rd.l--;
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_dec_w(CPUCoreOpArgument args)
+		public Task op_dec_w(CPUCoreOpArgument args)
         {
             rd.w--;
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_asl_b(CPUCoreOpArgument args)
+		public Task op_asl_b(CPUCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(rd.l & 0x80);
             rd.l <<= 1;
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_asl_w(CPUCoreOpArgument args)
+		public Task op_asl_w(CPUCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(rd.w & 0x8000);
             rd.w <<= 1;
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_lsr_b(CPUCoreOpArgument args)
+		public Task op_lsr_b(CPUCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(rd.l & 1);
             rd.l >>= 1;
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_lsr_w(CPUCoreOpArgument args)
+		public Task op_lsr_w(CPUCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(rd.w & 1);
             rd.w >>= 1;
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_rol_b(CPUCoreOpArgument args)
+		public Task op_rol_b(CPUCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c);
             regs.p.c = Convert.ToBoolean(rd.l & 0x80);
             rd.l = (byte)((uint)(rd.l << 1) | carry);
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_rol_w(CPUCoreOpArgument args)
+		public Task op_rol_w(CPUCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c);
             regs.p.c = Convert.ToBoolean(rd.w & 0x8000);
             rd.w = (ushort)((uint)(rd.w << 1) | carry);
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ror_b(CPUCoreOpArgument args)
+		public Task op_ror_b(CPUCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c) << 7;
             regs.p.c = Convert.ToBoolean(rd.l & 1);
             rd.l = (byte)(carry | (uint)(rd.l >> 1));
             regs.p.n = Convert.ToBoolean(rd.l & 0x80);
             regs.p.z = rd.l == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_ror_w(CPUCoreOpArgument args)
+		public Task op_ror_w(CPUCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c) << 15;
             regs.p.c = Convert.ToBoolean(rd.w & 1);
             rd.w = (ushort)(carry | (uint)(rd.w >> 1));
             regs.p.n = Convert.ToBoolean(rd.w & 0x8000);
             regs.p.z = rd.w == 0;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_trb_b(CPUCoreOpArgument args)
+		public Task op_trb_b(CPUCoreOpArgument args)
         {
             regs.p.z = (rd.l & regs.a.l) == 0;
             rd.l &= (byte)(~regs.a.l);
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_trb_w(CPUCoreOpArgument args)
+		public Task op_trb_w(CPUCoreOpArgument args)
         {
             regs.p.z = (rd.w & regs.a.w) == 0;
             rd.w &= (ushort)(~regs.a.w);
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_tsb_b(CPUCoreOpArgument args)
+		public Task op_tsb_b(CPUCoreOpArgument args)
         {
             regs.p.z = (rd.l & regs.a.l) == 0;
             rd.l |= regs.a.l;
-        }
+	        return Task.FromResult(false);
+		}
 
-        public void op_tsb_w(CPUCoreOpArgument args)
+		public Task op_tsb_w(CPUCoreOpArgument args)
         {
             regs.p.z = (rd.w & regs.a.w) == 0;
             rd.w |= regs.a.w;
+	        return Task.FromResult(false);
         }
 
-        public void op_read_const_b(CPUCoreOpArgument args)
+        public async Task op_read_const_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
             last_cycle();
-            rd.l = op_readpc();
-            op.Invoke(null);
+            rd.l = await op_readpc();
+			await op.Invoke(null);
         }
 
-        public void op_read_const_w(CPUCoreOpArgument args)
+        public async Task op_read_const_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             last_cycle();
-            rd.h = op_readpc();
-            op.Invoke(null);
+            rd.h = await op_readpc();
+			await op.Invoke(null);
         }
 
-        public void op_read_bit_const_b(CPUCoreOpArgument args)
+        public async Task op_read_bit_const_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             regs.p.z = ((rd.l & regs.a.l) == 0);
         }
 
-        public void op_read_bit_const_w(CPUCoreOpArgument args)
+        public async Task op_read_bit_const_w(CPUCoreOpArgument args)
         {
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             last_cycle();
-            rd.h = op_readpc();
+            rd.h = await op_readpc();
             regs.p.z = ((rd.w & regs.a.w) == 0);
         }
 
-        public void op_read_addr_b(CPUCoreOpArgument args)
+        public async Task op_read_addr_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
             last_cycle();
-            rd.l = op_readdbr(aa.w);
-            op.Invoke(null);
+            rd.l = await op_readdbr(aa.w);
+			await op.Invoke(null);
         }
 
-        public void op_read_addr_w(CPUCoreOpArgument args)
+        public async Task op_read_addr_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            rd.l = op_readdbr(aa.w + 0U);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            rd.l = await op_readdbr(aa.w + 0U);
             last_cycle();
-            rd.h = op_readdbr(aa.w + 1U);
-            op.Invoke(null);
+            rd.h = await op_readdbr(aa.w + 1U);
+			await op.Invoke(null);
         }
 
-        public void op_read_addrx_b(CPUCoreOpArgument args)
+        public async Task op_read_addrx_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.x.w));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.x.w));
             last_cycle();
-            rd.l = op_readdbr((uint)(aa.w + regs.x.w));
-            op.Invoke(null);
+            rd.l = await op_readdbr((uint)(aa.w + regs.x.w));
+			await op.Invoke(null);
         }
 
-        public void op_read_addrx_w(CPUCoreOpArgument args)
+        public async Task op_read_addrx_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.x.w));
-            rd.l = op_readdbr((uint)(aa.w + regs.x.w + 0));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.x.w));
+            rd.l = await op_readdbr((uint)(aa.w + regs.x.w + 0));
             last_cycle();
-            rd.h = op_readdbr((uint)(aa.w + regs.x.w + 1));
-            op.Invoke(null);
+            rd.h = await op_readdbr((uint)(aa.w + regs.x.w + 1));
+			await op.Invoke(null);
         }
 
-        public void op_read_addry_b(CPUCoreOpArgument args)
+        public async Task op_read_addry_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
             last_cycle();
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w));
-            op.Invoke(null);
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w));
+			await op.Invoke(null);
         }
 
-        public void op_read_addry_w(CPUCoreOpArgument args)
+        public async Task op_read_addry_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w + 0));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w + 0));
             last_cycle();
-            rd.h = op_readdbr((uint)(aa.w + regs.y.w + 1));
-            op.Invoke(null);
+            rd.h = await op_readdbr((uint)(aa.w + regs.y.w + 1));
+			await op.Invoke(null);
         }
 
-        public void op_read_long_b(CPUCoreOpArgument args)
+        public async Task op_read_long_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
             last_cycle();
-            rd.l = op_readlong(aa.d);
-            op.Invoke(null);
+            rd.l = await op_readlong(aa.d);
+			await op.Invoke(null);
         }
 
-        public void op_read_long_w(CPUCoreOpArgument args)
+        public async Task op_read_long_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
-            rd.l = op_readlong(aa.d + 0);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
+            rd.l = await op_readlong(aa.d + 0);
             last_cycle();
-            rd.h = op_readlong(aa.d + 1);
-            op.Invoke(null);
+            rd.h = await op_readlong(aa.d + 1);
+			await op.Invoke(null);
         }
 
-        public void op_read_longx_b(CPUCoreOpArgument args)
+        public async Task op_read_longx_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
             last_cycle();
-            rd.l = op_readlong(aa.d + regs.x.w);
-            op.Invoke(null);
+            rd.l = await op_readlong(aa.d + regs.x.w);
+			await op.Invoke(null);
         }
 
-        public void op_read_longx_w(CPUCoreOpArgument args)
+        public async Task op_read_longx_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
-            rd.l = op_readlong(aa.d + regs.x.w + 0);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
+            rd.l = await op_readlong(aa.d + regs.x.w + 0);
             last_cycle();
-            rd.h = op_readlong(aa.d + regs.x.w + 1);
-            op.Invoke(null);
+            rd.h = await op_readlong(aa.d + regs.x.w + 1);
+			await op.Invoke(null);
         }
 
-        public void op_read_dp_b(CPUCoreOpArgument args)
+        public async Task op_read_dp_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
+            dp = await op_readpc();
+			await op_io_cond2();
             last_cycle();
-            rd.l = op_readdp(dp);
-            op.Invoke(null);
+            rd.l = await op_readdp(dp);
+			await op.Invoke(null);
         }
 
-        public void op_read_dp_w(CPUCoreOpArgument args)
+        public async Task op_read_dp_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            rd.l = op_readdp(dp + 0U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            rd.l = await op_readdp(dp + 0U);
             last_cycle();
-            rd.h = op_readdp(dp + 1U);
-            op.Invoke(null);
+            rd.h = await op_readdp(dp + 1U);
+			await op.Invoke(null);
         }
 
-        public void op_read_dpr_b(CPUCoreOpArgument args)
-        {
-            CPUCoreOp op = args.op;
-            int n = args.x;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            last_cycle();
-            rd.l = op_readdp((uint)(dp + regs.r[n].w));
-            op.Invoke(null);
-        }
-
-        public void op_read_dpr_w(CPUCoreOpArgument args)
+        public async Task op_read_dpr_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
             int n = args.x;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            rd.l = op_readdp((uint)(dp + regs.r[n].w + 0));
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
             last_cycle();
-            rd.h = op_readdp((uint)(dp + regs.r[n].w + 1));
-            op.Invoke(null);
+            rd.l = await op_readdp((uint)(dp + regs.r[n].w));
+			await op.Invoke(null);
         }
 
-        public void op_read_idp_b(CPUCoreOpArgument args)
+        public async Task op_read_dpr_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
+            int n = args.x;
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            rd.l = await op_readdp((uint)(dp + regs.r[n].w + 0));
             last_cycle();
-            rd.l = op_readdbr(aa.w);
-            op.Invoke(null);
+            rd.h = await op_readdp((uint)(dp + regs.r[n].w + 1));
+			await op.Invoke(null);
         }
 
-        public void op_read_idp_w(CPUCoreOpArgument args)
+        public async Task op_read_idp_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            rd.l = op_readdbr(aa.w + 0U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
             last_cycle();
-            rd.h = op_readdbr(aa.w + 1U);
-            op.Invoke(null);
+            rd.l = await op_readdbr(aa.w);
+			await op.Invoke(null);
         }
 
-        public void op_read_idpx_b(CPUCoreOpArgument args)
+        public async Task op_read_idp_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            aa.l = op_readdp((uint)(dp + regs.x.w + 0));
-            aa.h = op_readdp((uint)(dp + regs.x.w + 1));
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            rd.l = await op_readdbr(aa.w + 0U);
             last_cycle();
-            rd.l = op_readdbr(aa.w);
-            op.Invoke(null);
+            rd.h = await op_readdbr(aa.w + 1U);
+			await op.Invoke(null);
         }
 
-        public void op_read_idpx_w(CPUCoreOpArgument args)
+        public async Task op_read_idpx_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            aa.l = op_readdp((uint)(dp + regs.x.w + 0));
-            aa.h = op_readdp((uint)(dp + regs.x.w + 1));
-            rd.l = op_readdbr(aa.w + 0U);
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            aa.l = await op_readdp((uint)(dp + regs.x.w + 0));
+            aa.h = await op_readdp((uint)(dp + regs.x.w + 1));
             last_cycle();
-            rd.h = op_readdbr(aa.w + 1U);
-            op.Invoke(null);
+            rd.l = await op_readdbr(aa.w);
+			await op.Invoke(null);
         }
 
-        public void op_read_idpy_b(CPUCoreOpArgument args)
+        public async Task op_read_idpx_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            aa.l = await op_readdp((uint)(dp + regs.x.w + 0));
+            aa.h = await op_readdp((uint)(dp + regs.x.w + 1));
+            rd.l = await op_readdbr(aa.w + 0U);
             last_cycle();
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w));
-            op.Invoke(null);
+            rd.h = await op_readdbr(aa.w + 1U);
+			await op.Invoke(null);
         }
 
-        public void op_read_idpy_w(CPUCoreOpArgument args)
+        public async Task op_read_idpy_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w + 0));
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
             last_cycle();
-            rd.h = op_readdbr((uint)(aa.w + regs.y.w + 1));
-            op.Invoke(null);
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w));
+			await op.Invoke(null);
         }
 
-        public void op_read_ildp_b(CPUCoreOpArgument args)
+        public async Task op_read_idpy_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_io_cond4(aa.w, (ushort)(aa.w + regs.y.w));
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w + 0));
             last_cycle();
-            rd.l = op_readlong(aa.d);
-            op.Invoke(null);
+            rd.h = await op_readdbr((uint)(aa.w + regs.y.w + 1));
+			await op.Invoke(null);
         }
 
-        public void op_read_ildp_w(CPUCoreOpArgument args)
+        public async Task op_read_ildp_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
-            rd.l = op_readlong(aa.d + 0);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
             last_cycle();
-            rd.h = op_readlong(aa.d + 1);
-            op.Invoke(null);
+            rd.l = await op_readlong(aa.d);
+			await op.Invoke(null);
         }
 
-        public void op_read_ildpy_b(CPUCoreOpArgument args)
+        public async Task op_read_ildp_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
+            rd.l = await op_readlong(aa.d + 0);
             last_cycle();
-            rd.l = op_readlong(aa.d + regs.y.w);
-            op.Invoke(null);
+            rd.h = await op_readlong(aa.d + 1);
+			await op.Invoke(null);
         }
 
-        public void op_read_ildpy_w(CPUCoreOpArgument args)
+        public async Task op_read_ildpy_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
-            rd.l = op_readlong(aa.d + regs.y.w + 0);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
             last_cycle();
-            rd.h = op_readlong(aa.d + regs.y.w + 1);
-            op.Invoke(null);
+            rd.l = await op_readlong(aa.d + regs.y.w);
+			await op.Invoke(null);
         }
 
-        public void op_read_sr_b(CPUCoreOpArgument args)
+        public async Task op_read_ildpy_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            sp = op_readpc();
-            op_io();
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
+            rd.l = await op_readlong(aa.d + regs.y.w + 0);
             last_cycle();
-            rd.l = op_readsp(sp);
-            op.Invoke(null);
+            rd.h = await op_readlong(aa.d + regs.y.w + 1);
+			await op.Invoke(null);
         }
 
-        public void op_read_sr_w(CPUCoreOpArgument args)
+        public async Task op_read_sr_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            sp = op_readpc();
-            op_io();
-            rd.l = op_readsp(sp + 0U);
+            sp = await op_readpc();
+			await op_io();
             last_cycle();
-            rd.h = op_readsp(sp + 1U);
-            op.Invoke(null);
+            rd.l = await op_readsp(sp);
+			await op.Invoke(null);
         }
 
-        public void op_read_isry_b(CPUCoreOpArgument args)
+        public async Task op_read_sr_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            sp = op_readpc();
-            op_io();
-            aa.l = op_readsp(sp + 0U);
-            aa.h = op_readsp(sp + 1U);
-            op_io();
+            sp = await op_readpc();
+			await op_io();
+            rd.l = await op_readsp(sp + 0U);
             last_cycle();
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w));
-            op.Invoke(null);
+            rd.h = await op_readsp(sp + 1U);
+			await op.Invoke(null);
         }
 
-        public void op_read_isry_w(CPUCoreOpArgument args)
+        public async Task op_read_isry_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            sp = op_readpc();
-            op_io();
-            aa.l = op_readsp(sp + 0U);
-            aa.h = op_readsp(sp + 1U);
-            op_io();
-            rd.l = op_readdbr((uint)(aa.w + regs.y.w + 0));
+            sp = await op_readpc();
+			await op_io();
+            aa.l = await op_readsp(sp + 0U);
+            aa.h = await op_readsp(sp + 1U);
+			await op_io();
             last_cycle();
-            rd.h = op_readdbr((uint)(aa.w + regs.y.w + 1));
-            op.Invoke(null);
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w));
+			await op.Invoke(null);
         }
 
-        public void op_write_addr_b(CPUCoreOpArgument args)
+        public async Task op_read_isry_w(CPUCoreOpArgument args)
+        {
+            CPUCoreOp op = args.op;
+            sp = await op_readpc();
+			await op_io();
+            aa.l = await op_readsp(sp + 0U);
+            aa.h = await op_readsp(sp + 1U);
+			await op_io();
+            rd.l = await op_readdbr((uint)(aa.w + regs.y.w + 0));
+            last_cycle();
+            rd.h = await op_readdbr((uint)(aa.w + regs.y.w + 1));
+			await op.Invoke(null);
+        }
+
+        public async Task op_write_addr_b(CPUCoreOpArgument args)
         {
             int n = args.x;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
             last_cycle();
-            op_writedbr(aa.w, (byte)regs.r[n]);
+			await op_writedbr(aa.w, (byte)regs.r[n]);
         }
 
-        public void op_write_addr_w(CPUCoreOpArgument args)
+        public async Task op_write_addr_w(CPUCoreOpArgument args)
         {
             int n = args.x;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_writedbr(aa.w + 0U, (byte)(regs.r[n] >> 0));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_writedbr(aa.w + 0U, (byte)(regs.r[n] >> 0));
             last_cycle();
-            op_writedbr(aa.w + 1U, (byte)(regs.r[n] >> 8));
+			await op_writedbr(aa.w + 1U, (byte)(regs.r[n] >> 8));
         }
 
-        public void op_write_addrr_b(CPUCoreOpArgument args)
-        {
-            int n = args.x;
-            int i = args.y;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
-            last_cycle();
-            op_writedbr(aa.w + (uint)regs.r[i], (byte)regs.r[n]);
-        }
-
-        public void op_write_addrr_w(CPUCoreOpArgument args)
+        public async Task op_write_addrr_b(CPUCoreOpArgument args)
         {
             int n = args.x;
             int i = args.y;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
-            op_writedbr(aa.w + (uint)regs.r[i] + 0, (byte)(regs.r[n] >> 0));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
             last_cycle();
-            op_writedbr(aa.w + (uint)regs.r[i] + 1, (byte)(regs.r[n] >> 8));
+			await op_writedbr(aa.w + (uint)regs.r[i], (byte)regs.r[n]);
         }
 
-        public void op_write_longr_b(CPUCoreOpArgument args)
+        public async Task op_write_addrr_w(CPUCoreOpArgument args)
+        {
+            int n = args.x;
+            int i = args.y;
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
+			await op_writedbr(aa.w + (uint)regs.r[i] + 0, (byte)(regs.r[n] >> 0));
+            last_cycle();
+			await op_writedbr(aa.w + (uint)regs.r[i] + 1, (byte)(regs.r[n] >> 8));
+        }
+
+        public async Task op_write_longr_b(CPUCoreOpArgument args)
         {
             int i = args.x;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
             last_cycle();
-            op_writelong(aa.d + (uint)regs.r[i], regs.a.l);
+			await op_writelong(aa.d + (uint)regs.r[i], regs.a.l);
         }
 
-        public void op_write_longr_w(CPUCoreOpArgument args)
+        public async Task op_write_longr_w(CPUCoreOpArgument args)
         {
             int i = args.x;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            aa.b = op_readpc();
-            op_writelong(aa.d + (uint)regs.r[i] + 0, regs.a.l);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            aa.b = await op_readpc();
+			await op_writelong(aa.d + (uint)regs.r[i] + 0, regs.a.l);
             last_cycle();
-            op_writelong(aa.d + (uint)regs.r[i] + 1, regs.a.h);
+			await op_writelong(aa.d + (uint)regs.r[i] + 1, regs.a.h);
         }
 
-        public void op_write_dp_b(CPUCoreOpArgument args)
+        public async Task op_write_dp_b(CPUCoreOpArgument args)
         {
             int n = args.x;
-            dp = op_readpc();
-            op_io_cond2();
+            dp = await op_readpc();
+			await op_io_cond2();
             last_cycle();
-            op_writedp(dp, (byte)regs.r[n]);
+			await op_writedp(dp, (byte)regs.r[n]);
         }
 
-        public void op_write_dp_w(CPUCoreOpArgument args)
+        public async Task op_write_dp_w(CPUCoreOpArgument args)
         {
             int n = args.x;
-            dp = op_readpc();
-            op_io_cond2();
-            op_writedp(dp + 0U, (byte)(regs.r[n] >> 0));
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_writedp(dp + 0U, (byte)(regs.r[n] >> 0));
             last_cycle();
-            op_writedp(dp + 1U, (byte)(regs.r[n] >> 8));
+			await op_writedp(dp + 1U, (byte)(regs.r[n] >> 8));
         }
 
-        public void op_write_dpr_b(CPUCoreOpArgument args)
-        {
-            int n = args.x;
-            int i = args.y;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            last_cycle();
-            op_writedp(dp + (uint)regs.r[i], (byte)regs.r[n]);
-        }
-
-        public void op_write_dpr_w(CPUCoreOpArgument args)
+        public async Task op_write_dpr_b(CPUCoreOpArgument args)
         {
             int n = args.x;
             int i = args.y;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            op_writedp(dp + (uint)regs.r[i] + 0, (byte)(regs.r[n] >> 0));
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
             last_cycle();
-            op_writedp(dp + (uint)regs.r[i] + 1, (byte)(regs.r[n] >> 8));
+			await op_writedp(dp + (uint)regs.r[i], (byte)regs.r[n]);
         }
 
-        public void op_sta_idp_b(CPUCoreOpArgument args)
+        public async Task op_write_dpr_w(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
+            int n = args.x;
+            int i = args.y;
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+			await op_writedp(dp + (uint)regs.r[i] + 0, (byte)(regs.r[n] >> 0));
             last_cycle();
-            op_writedbr(aa.w, regs.a.l);
+			await op_writedp(dp + (uint)regs.r[i] + 1, (byte)(regs.r[n] >> 8));
         }
 
-        public void op_sta_idp_w(CPUCoreOpArgument args)
+        public async Task op_sta_idp_b(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_writedbr(aa.w + 0U, regs.a.l);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
             last_cycle();
-            op_writedbr(aa.w + 1U, regs.a.h);
+			await op_writedbr(aa.w, regs.a.l);
         }
 
-        public void op_sta_ildp_b(CPUCoreOpArgument args)
+        public async Task op_sta_idp_w(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_writedbr(aa.w + 0U, regs.a.l);
             last_cycle();
-            op_writelong(aa.d, regs.a.l);
+			await op_writedbr(aa.w + 1U, regs.a.h);
         }
 
-        public void op_sta_ildp_w(CPUCoreOpArgument args)
+        public async Task op_sta_ildp_b(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
-            op_writelong(aa.d + 0, regs.a.l);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
             last_cycle();
-            op_writelong(aa.d + 1, regs.a.h);
+			await op_writelong(aa.d, regs.a.l);
         }
 
-        public void op_sta_idpx_b(CPUCoreOpArgument args)
+        public async Task op_sta_ildp_w(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            aa.l = op_readdp((uint)(dp + regs.x.w + 0));
-            aa.h = op_readdp((uint)(dp + regs.x.w + 1));
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
+			await op_writelong(aa.d + 0, regs.a.l);
             last_cycle();
-            op_writedbr(aa.w, regs.a.l);
+			await op_writelong(aa.d + 1, regs.a.h);
         }
 
-        public void op_sta_idpx_w(CPUCoreOpArgument args)
+        public async Task op_sta_idpx_b(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            aa.l = op_readdp((uint)(dp + regs.x.w + 0));
-            aa.h = op_readdp((uint)(dp + regs.x.w + 1));
-            op_writedbr(aa.w + 0U, regs.a.l);
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            aa.l = await op_readdp((uint)(dp + regs.x.w + 0));
+            aa.h = await op_readdp((uint)(dp + regs.x.w + 1));
             last_cycle();
-            op_writedbr(aa.w + 1U, regs.a.h);
+			await op_writedbr(aa.w, regs.a.l);
         }
 
-        public void op_sta_idpy_b(CPUCoreOpArgument args)
+        public async Task op_sta_idpx_w(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_io();
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            aa.l = await op_readdp((uint)(dp + regs.x.w + 0));
+            aa.h = await op_readdp((uint)(dp + regs.x.w + 1));
+			await op_writedbr(aa.w + 0U, regs.a.l);
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.y.w), regs.a.l);
+			await op_writedbr(aa.w + 1U, regs.a.h);
         }
 
-        public void op_sta_idpy_w(CPUCoreOpArgument args)
+        public async Task op_sta_idpy_b(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_io();
-            op_writedbr((uint)(aa.w + regs.y.w + 0), regs.a.l);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_io();
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.y.w + 1), regs.a.h);
+			await op_writedbr((uint)(aa.w + regs.y.w), regs.a.l);
         }
 
-        public void op_sta_ildpy_b(CPUCoreOpArgument args)
+        public async Task op_sta_idpy_w(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_io();
+			await op_writedbr((uint)(aa.w + regs.y.w + 0), regs.a.l);
             last_cycle();
-            op_writelong(aa.d + regs.y.w, regs.a.l);
+			await op_writedbr((uint)(aa.w + regs.y.w + 1), regs.a.h);
         }
 
-        public void op_sta_ildpy_w(CPUCoreOpArgument args)
+        public async Task op_sta_ildpy_b(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            aa.b = op_readdp(dp + 2U);
-            op_writelong(aa.d + regs.y.w + 0, regs.a.l);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
             last_cycle();
-            op_writelong(aa.d + regs.y.w + 1, regs.a.h);
+			await op_writelong(aa.d + regs.y.w, regs.a.l);
         }
 
-        public void op_sta_sr_b(CPUCoreOpArgument args)
+        public async Task op_sta_ildpy_w(CPUCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+            aa.b = await op_readdp(dp + 2U);
+			await op_writelong(aa.d + regs.y.w + 0, regs.a.l);
             last_cycle();
-            op_writesp(sp, regs.a.l);
+			await op_writelong(aa.d + regs.y.w + 1, regs.a.h);
         }
 
-        public void op_sta_sr_w(CPUCoreOpArgument args)
+        public async Task op_sta_sr_b(CPUCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
-            op_writesp(sp + 0U, regs.a.l);
+            sp = await op_readpc();
+			await op_io();
             last_cycle();
-            op_writesp(sp + 1U, regs.a.h);
+			await op_writesp(sp, regs.a.l);
         }
 
-        public void op_sta_isry_b(CPUCoreOpArgument args)
+        public async Task op_sta_sr_w(CPUCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
-            aa.l = op_readsp(sp + 0U);
-            aa.h = op_readsp(sp + 1U);
-            op_io();
+            sp = await op_readpc();
+			await op_io();
+			await op_writesp(sp + 0U, regs.a.l);
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.y.w), regs.a.l);
+			await op_writesp(sp + 1U, regs.a.h);
         }
 
-        public void op_sta_isry_w(CPUCoreOpArgument args)
+        public async Task op_sta_isry_b(CPUCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
-            aa.l = op_readsp(sp + 0U);
-            aa.h = op_readsp(sp + 1U);
-            op_io();
-            op_writedbr((uint)(aa.w + regs.y.w + 0), regs.a.l);
+            sp = await op_readpc();
+			await op_io();
+            aa.l = await op_readsp(sp + 0U);
+            aa.h = await op_readsp(sp + 1U);
+			await op_io();
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.y.w + 1), regs.a.h);
+			await op_writedbr((uint)(aa.w + regs.y.w), regs.a.l);
         }
 
-        public void op_adjust_imm_b(CPUCoreOpArgument args)
+        public async Task op_sta_isry_w(CPUCoreOpArgument args)
+        {
+            sp = await op_readpc();
+			await op_io();
+            aa.l = await op_readsp(sp + 0U);
+            aa.h = await op_readsp(sp + 1U);
+			await op_io();
+			await op_writedbr((uint)(aa.w + regs.y.w + 0), regs.a.l);
+            last_cycle();
+			await op_writedbr((uint)(aa.w + regs.y.w + 1), regs.a.h);
+        }
+
+        public async Task op_adjust_imm_b(CPUCoreOpArgument args)
         {
             int n = args.x;
             int adjust = args.y;
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.r[n].l += (byte)adjust;
             regs.p.n = Convert.ToBoolean(regs.r[n].l & 0x80);
             regs.p.z = (regs.r[n].l == 0);
         }
 
-        public void op_adjust_imm_w(CPUCoreOpArgument args)
+        public async Task op_adjust_imm_w(CPUCoreOpArgument args)
         {
             int n = args.x;
             int adjust = args.y;
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.r[n].w += (ushort)adjust;
             regs.p.n = Convert.ToBoolean(regs.r[n].w & 0x8000);
             regs.p.z = (regs.r[n].w == 0);
-        }
+		}
 
-        public void op_asl_imm_b(CPUCoreOpArgument args)
+		public async Task op_asl_imm_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.p.c = Convert.ToBoolean(regs.a.l & 0x80);
             regs.a.l <<= 1;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = (regs.a.l == 0);
-        }
+		}
 
-        public void op_asl_imm_w(CPUCoreOpArgument args)
+		public async Task op_asl_imm_w(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.p.c = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.a.w <<= 1;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = (regs.a.w == 0);
-        }
+		}
 
-        public void op_lsr_imm_b(CPUCoreOpArgument args)
+		public async Task op_lsr_imm_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.p.c = Convert.ToBoolean(regs.a.l & 0x01);
             regs.a.l >>= 1;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = (regs.a.l == 0);
-        }
+		}
 
-        public void op_lsr_imm_w(CPUCoreOpArgument args)
+		public async Task op_lsr_imm_w(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.p.c = Convert.ToBoolean(regs.a.w & 0x0001);
             regs.a.w >>= 1;
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = (regs.a.w == 0);
-        }
+		}
 
-        public void op_rol_imm_b(CPUCoreOpArgument args)
+		public async Task op_rol_imm_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             bool carry = regs.p.c;
             regs.p.c = Convert.ToBoolean(regs.a.l & 0x80);
             regs.a.l = (byte)((regs.a.l << 1) | Convert.ToInt32(carry));
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = (regs.a.l == 0);
-        }
+		}
 
-        public void op_rol_imm_w(CPUCoreOpArgument args)
+		public async Task op_rol_imm_w(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             bool carry = regs.p.c;
             regs.p.c = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.a.w = (ushort)((regs.a.w << 1) | Convert.ToInt32(carry));
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = (regs.a.w == 0);
-        }
+		}
 
-        public void op_ror_imm_b(CPUCoreOpArgument args)
+		public async Task op_ror_imm_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             bool carry = regs.p.c;
             regs.p.c = Convert.ToBoolean(regs.a.l & 0x01);
             regs.a.l = (byte)((Convert.ToInt32(carry) << 7) | (regs.a.l >> 1));
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = (regs.a.l == 0);
-        }
+		}
 
-        public void op_ror_imm_w(CPUCoreOpArgument args)
+		public async Task op_ror_imm_w(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             bool carry = regs.p.c;
             regs.p.c = Convert.ToBoolean(regs.a.w & 0x0001);
             regs.a.w = (ushort)((Convert.ToInt32(carry) << 15) | (regs.a.w >> 1));
             regs.p.n = Convert.ToBoolean(regs.a.w & 0x8000);
             regs.p.z = (regs.a.w == 0);
-        }
+		}
 
-        public void op_adjust_addr_b(CPUCoreOpArgument args)
+		public async Task op_adjust_addr_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            rd.l = op_readdbr(aa.w);
-            op_io();
-            op.Invoke(null);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            rd.l = await op_readdbr(aa.w);
+			await op_io();
+			await op.Invoke(null);
             last_cycle();
-            op_writedbr(aa.w, rd.l);
+			await op_writedbr(aa.w, rd.l);
         }
 
-        public void op_adjust_addr_w(CPUCoreOpArgument args)
+        public async Task op_adjust_addr_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            rd.l = op_readdbr(aa.w + 0U);
-            rd.h = op_readdbr(aa.w + 1U);
-            op_io();
-            op.Invoke(null);
-            op_writedbr(aa.w + 1U, rd.h);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            rd.l = await op_readdbr(aa.w + 0U);
+            rd.h = await op_readdbr(aa.w + 1U);
+			await op_io();
+			await op.Invoke(null);
+			await op_writedbr(aa.w + 1U, rd.h);
             last_cycle();
-            op_writedbr(aa.w + 0U, rd.l);
+			await op_writedbr(aa.w + 0U, rd.l);
         }
 
-        public void op_adjust_addrx_b(CPUCoreOpArgument args)
+        public async Task op_adjust_addrx_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
-            rd.l = op_readdbr((uint)(aa.w + regs.x.w));
-            op_io();
-            op.Invoke(null);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
+            rd.l = await op_readdbr((uint)(aa.w + regs.x.w));
+			await op_io();
+			await op.Invoke(null);
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.x.w), rd.l);
+			await op_writedbr((uint)(aa.w + regs.x.w), rd.l);
         }
 
-        public void op_adjust_addrx_w(CPUCoreOpArgument args)
+        public async Task op_adjust_addrx_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
-            rd.l = op_readdbr((uint)(aa.w + regs.x.w + 0));
-            rd.h = op_readdbr((uint)(aa.w + regs.x.w + 1));
-            op_io();
-            op.Invoke(null);
-            op_writedbr((uint)(aa.w + regs.x.w + 1), rd.h);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
+            rd.l = await op_readdbr((uint)(aa.w + regs.x.w + 0));
+            rd.h = await op_readdbr((uint)(aa.w + regs.x.w + 1));
+			await op_io();
+			await op.Invoke(null);
+			await op_writedbr((uint)(aa.w + regs.x.w + 1), rd.h);
             last_cycle();
-            op_writedbr((uint)(aa.w + regs.x.w + 0), rd.l);
+			await op_writedbr((uint)(aa.w + regs.x.w + 0), rd.l);
         }
 
-        public void op_adjust_dp_b(CPUCoreOpArgument args)
+        public async Task op_adjust_dp_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            rd.l = op_readdp(dp);
-            op_io();
-            op.Invoke(null);
+            dp = await op_readpc();
+			await op_io_cond2();
+            rd.l = await op_readdp(dp);
+			await op_io();
+			await op.Invoke(null);
             last_cycle();
-            op_writedp(dp, rd.l);
+			await op_writedp(dp, rd.l);
         }
 
-        public void op_adjust_dp_w(CPUCoreOpArgument args)
+        public async Task op_adjust_dp_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            rd.l = op_readdp(dp + 0U);
-            rd.h = op_readdp(dp + 1U);
-            op_io();
-            op.Invoke(null);
-            op_writedp(dp + 1U, rd.h);
+            dp = await op_readpc();
+			await op_io_cond2();
+            rd.l = await op_readdp(dp + 0U);
+            rd.h = await op_readdp(dp + 1U);
+			await op_io();
+			await op.Invoke(null);
+			await op_writedp(dp + 1U, rd.h);
             last_cycle();
-            op_writedp(dp + 0U, rd.l);
+			await op_writedp(dp + 0U, rd.l);
         }
 
-        public void op_adjust_dpx_b(CPUCoreOpArgument args)
+        public async Task op_adjust_dpx_b(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            rd.l = op_readdp((uint)(dp + regs.x.w));
-            op_io();
-            op.Invoke(null);
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            rd.l = await op_readdp((uint)(dp + regs.x.w));
+			await op_io();
+			await op.Invoke(null);
             last_cycle();
-            op_writedp((uint)(dp + regs.x.w), rd.l);
+			await op_writedp((uint)(dp + regs.x.w), rd.l);
         }
 
-        public void op_adjust_dpx_w(CPUCoreOpArgument args)
+        public async Task op_adjust_dpx_w(CPUCoreOpArgument args)
         {
             CPUCoreOp op = args.op;
-            dp = op_readpc();
-            op_io_cond2();
-            op_io();
-            rd.l = op_readdp((uint)(dp + regs.x.w + 0));
-            rd.h = op_readdp((uint)(dp + regs.x.w + 1));
-            op_io();
-            op.Invoke(null);
-            op_writedp((uint)(dp + regs.x.w + 1), rd.h);
+            dp = await op_readpc();
+			await op_io_cond2();
+			await op_io();
+            rd.l = await op_readdp((uint)(dp + regs.x.w + 0));
+            rd.h = await op_readdp((uint)(dp + regs.x.w + 1));
+			await op_io();
+			await op.Invoke(null);
+			await op_writedp((uint)(dp + regs.x.w + 1), rd.h);
             last_cycle();
-            op_writedp((uint)(dp + regs.x.w + 0), rd.l);
+			await op_writedp((uint)(dp + regs.x.w + 0), rd.l);
         }
 
-        public void op_branch(CPUCoreOpArgument args)
+        public async Task op_branch(CPUCoreOpArgument args)
         {
             int bit = args.x;
             int val = args.y;
             if (Bit.ToBit(regs.p & (uint)bit) != val)
             {
                 last_cycle();
-                rd.l = op_readpc();
+                rd.l = await op_readpc();
             }
             else
             {
-                rd.l = op_readpc();
+                rd.l = await op_readpc();
                 aa.w = (ushort)(regs.pc.d + (sbyte)rd.l);
-                op_io_cond6(aa.w);
+				await op_io_cond6(aa.w);
                 last_cycle();
-                op_io();
+                await op_io();
                 regs.pc.w = aa.w;
             }
         }
 
-        public void op_bra(CPUCoreOpArgument args)
+        public async Task op_bra(CPUCoreOpArgument args)
         {
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             aa.w = (ushort)(regs.pc.d + (sbyte)rd.l);
-            op_io_cond6(aa.w);
+			await op_io_cond6(aa.w);
             last_cycle();
-            op_io();
+			await op_io();
             regs.pc.w = aa.w;
         }
 
-        public void op_brl(CPUCoreOpArgument args)
+        public async Task op_brl(CPUCoreOpArgument args)
         {
-            rd.l = op_readpc();
-            rd.h = op_readpc();
+            rd.l = await op_readpc();
+            rd.h = await op_readpc();
             last_cycle();
-            op_io();
+			await op_io();
             regs.pc.w = (ushort)(regs.pc.d + (short)rd.w);
         }
 
-        public void op_jmp_addr(CPUCoreOpArgument args)
+        public async Task op_jmp_addr(CPUCoreOpArgument args)
         {
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             last_cycle();
-            rd.h = op_readpc();
+            rd.h = await op_readpc();
             regs.pc.w = rd.w;
         }
 
-        public void op_jmp_long(CPUCoreOpArgument args)
+        public async Task op_jmp_long(CPUCoreOpArgument args)
         {
-            rd.l = op_readpc();
-            rd.h = op_readpc();
+            rd.l = await op_readpc();
+            rd.h = await op_readpc();
             last_cycle();
-            rd.b = op_readpc();
+            rd.b = await op_readpc();
             regs.pc.d = rd.d & 0xffffff;
         }
 
-        public void op_jmp_iaddr(CPUCoreOpArgument args)
+        public async Task op_jmp_iaddr(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            rd.l = op_readaddr(aa.w + 0U);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            rd.l = await op_readaddr(aa.w + 0U);
             last_cycle();
-            rd.h = op_readaddr(aa.w + 1U);
+            rd.h = await op_readaddr(aa.w + 1U);
             regs.pc.w = rd.w;
         }
 
-        public void op_jmp_iaddrx(CPUCoreOpArgument args)
+        public async Task op_jmp_iaddrx(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
-            rd.l = op_readpbr((uint)(aa.w + regs.x.w + 0));
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
+            rd.l = await op_readpbr((uint)(aa.w + regs.x.w + 0));
             last_cycle();
-            rd.h = op_readpbr((uint)(aa.w + regs.x.w + 1));
+            rd.h = await op_readpbr((uint)(aa.w + regs.x.w + 1));
             regs.pc.w = rd.w;
         }
 
-        public void op_jmp_iladdr(CPUCoreOpArgument args)
+        public async Task op_jmp_iladdr(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            rd.l = op_readaddr(aa.w + 0U);
-            rd.h = op_readaddr(aa.w + 1U);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+            rd.l = await op_readaddr(aa.w + 0U);
+            rd.h = await op_readaddr(aa.w + 1U);
             last_cycle();
-            rd.b = op_readaddr(aa.w + 2U);
+            rd.b = await op_readaddr(aa.w + 2U);
             regs.pc.d = rd.d & 0xffffff;
         }
 
-        public void op_jsr_addr(CPUCoreOpArgument args)
+        public async Task op_jsr_addr(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
             regs.pc.w--;
-            op_writestack(regs.pc.h);
+			await op_writestack(regs.pc.h);
             last_cycle();
-            op_writestack(regs.pc.l);
+			await op_writestack(regs.pc.l);
             regs.pc.w = aa.w;
         }
 
-        public void op_jsr_long_e(CPUCoreOpArgument args)
+        public async Task op_jsr_long_e(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_writestackn(regs.pc.b);
-            op_io();
-            aa.b = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_writestackn(regs.pc.b);
+			await op_io();
+            aa.b = await op_readpc();
             regs.pc.w--;
-            op_writestackn(regs.pc.h);
+			await op_writestackn(regs.pc.h);
             last_cycle();
-            op_writestackn(regs.pc.l);
+			await op_writestackn(regs.pc.l);
             regs.pc.d = aa.d & 0xffffff;
             regs.s.h = 0x01;
         }
 
-        public void op_jsr_long_n(CPUCoreOpArgument args)
+        public async Task op_jsr_long_n(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_writestackn(regs.pc.b);
-            op_io();
-            aa.b = op_readpc();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_writestackn(regs.pc.b);
+			await op_io();
+            aa.b = await op_readpc();
             regs.pc.w--;
-            op_writestackn(regs.pc.h);
+			await op_writestackn(regs.pc.h);
             last_cycle();
-            op_writestackn(regs.pc.l);
+			await op_writestackn(regs.pc.l);
             regs.pc.d = aa.d & 0xffffff;
         }
 
-        public void op_jsr_iaddrx_e(CPUCoreOpArgument args)
+        public async Task op_jsr_iaddrx_e(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            op_writestackn(regs.pc.h);
-            op_writestackn(regs.pc.l);
-            aa.h = op_readpc();
-            op_io();
-            rd.l = op_readpbr((uint)(aa.w + regs.x.w + 0));
+            aa.l = await op_readpc();
+			await op_writestackn(regs.pc.h);
+			await op_writestackn(regs.pc.l);
+            aa.h = await op_readpc();
+			await op_io();
+            rd.l = await op_readpbr((uint)(aa.w + regs.x.w + 0));
             last_cycle();
-            rd.h = op_readpbr((uint)(aa.w + regs.x.w + 1));
+            rd.h = await op_readpbr((uint)(aa.w + regs.x.w + 1));
             regs.pc.w = rd.w;
             regs.s.h = 0x01;
         }
 
-        public void op_jsr_iaddrx_n(CPUCoreOpArgument args)
+        public async Task op_jsr_iaddrx_n(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            op_writestackn(regs.pc.h);
-            op_writestackn(regs.pc.l);
-            aa.h = op_readpc();
-            op_io();
-            rd.l = op_readpbr((uint)(aa.w + regs.x.w + 0));
+            aa.l = await op_readpc();
+			await op_writestackn(regs.pc.h);
+			await op_writestackn(regs.pc.l);
+            aa.h = await op_readpc();
+			await op_io();
+            rd.l = await op_readpbr((uint)(aa.w + regs.x.w + 0));
             last_cycle();
-            rd.h = op_readpbr((uint)(aa.w + regs.x.w + 1));
+            rd.h = await op_readpbr((uint)(aa.w + regs.x.w + 1));
             regs.pc.w = rd.w;
         }
 
-        public void op_rti_e(CPUCoreOpArgument args)
+        public async Task op_rti_e(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.p.Assign((byte)(op_readstack() | 0x30));
-            rd.l = op_readstack();
+			await op_io();
+			await op_io();
+            regs.p.Assign((byte)(await op_readstack() | 0x30));
+            rd.l = await op_readstack();
             last_cycle();
-            rd.h = op_readstack();
+            rd.h = await op_readstack();
             regs.pc.w = rd.w;
         }
 
-        public void op_rti_n(CPUCoreOpArgument args)
+        public async Task op_rti_n(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.p.Assign(op_readstack());
+			await op_io();
+			await op_io();
+            regs.p.Assign(await op_readstack());
             if (regs.p.x)
             {
                 regs.x.h = 0x00;
                 regs.y.h = 0x00;
             }
-            rd.l = op_readstack();
-            rd.h = op_readstack();
+            rd.l = await op_readstack();
+            rd.h = await op_readstack();
             last_cycle();
-            rd.b = op_readstack();
+            rd.b = await op_readstack();
             regs.pc.d = rd.d & 0xffffff;
             update_table();
         }
 
-        public void op_rts(CPUCoreOpArgument args)
+        public async Task op_rts(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            rd.l = op_readstack();
-            rd.h = op_readstack();
+			await op_io();
+			await op_io();
+            rd.l = await op_readstack();
+            rd.h = await op_readstack();
             last_cycle();
-            op_io();
+			await op_io();
             regs.pc.w = ++rd.w;
         }
 
-        public void op_rtl_e(CPUCoreOpArgument args)
+        public async Task op_rtl_e(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            rd.l = op_readstackn();
-            rd.h = op_readstackn();
+			await op_io();
+			await op_io();
+            rd.l = await op_readstackn();
+            rd.h = await op_readstackn();
             last_cycle();
-            rd.b = op_readstackn();
+            rd.b = await op_readstackn();
             regs.pc.b = rd.b;
             regs.pc.w = ++rd.w;
             regs.s.h = 0x01;
         }
 
-        public void op_rtl_n(CPUCoreOpArgument args)
+        public async Task op_rtl_n(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            rd.l = op_readstackn();
-            rd.h = op_readstackn();
+			await op_io();
+			await op_io();
+            rd.l = await op_readstackn();
+            rd.h = await op_readstackn();
             last_cycle();
-            rd.b = op_readstackn();
+            rd.b = await op_readstackn();
             regs.pc.b = rd.b;
             regs.pc.w = ++rd.w;
         }
 
-        public void op_nop(CPUCoreOpArgument args)
+        public async Task op_nop(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
+		}
+
+		public async Task op_wdm(CPUCoreOpArgument args)
+        {
+            last_cycle();
+			await op_readpc();
         }
 
-        public void op_wdm(CPUCoreOpArgument args)
+        public async Task op_xba(CPUCoreOpArgument args)
         {
+            await op_io();
             last_cycle();
-            op_readpc();
-        }
-
-        public void op_xba(CPUCoreOpArgument args)
-        {
-            op_io();
-            last_cycle();
-            op_io();
+            await op_io();
             regs.a.l ^= regs.a.h;
             regs.a.h ^= regs.a.l;
             regs.a.l ^= regs.a.h;
             regs.p.n = Convert.ToBoolean(regs.a.l & 0x80);
             regs.p.z = (regs.a.l == 0);
-        }
+		}
 
-        public void op_move_b(CPUCoreOpArgument args)
+		public async Task op_move_b(CPUCoreOpArgument args)
         {
             int adjust = args.x;
-            dp = op_readpc();
-            sp = op_readpc();
+            dp = await op_readpc();
+            sp = await op_readpc();
             regs.db = dp;
-            rd.l = op_readlong((uint)((sp << 16) | regs.x.w));
-            op_writelong((uint)((dp << 16) | regs.y.w), rd.l);
-            op_io();
+            rd.l = await op_readlong((uint)((sp << 16) | regs.x.w));
+			await op_writelong((uint)((dp << 16) | regs.y.w), rd.l);
+			await op_io();
             regs.x.l += (byte)adjust;
             regs.y.l += (byte)adjust;
             last_cycle();
-            op_io();
+			await op_io();
             if (Convert.ToBoolean(regs.a.w--))
             {
                 regs.pc.w -= 3;
             }
         }
 
-        public void op_move_w(CPUCoreOpArgument args)
+        public async Task op_move_w(CPUCoreOpArgument args)
         {
             int adjust = args.x;
-            dp = op_readpc();
-            sp = op_readpc();
+            dp = await op_readpc();
+            sp = await op_readpc();
             regs.db = dp;
-            rd.l = op_readlong((uint)((sp << 16) | regs.x.w));
-            op_writelong((uint)((dp << 16) | regs.y.w), rd.l);
-            op_io();
+            rd.l = await op_readlong((uint)((sp << 16) | regs.x.w));
+			await op_writelong((uint)((dp << 16) | regs.y.w), rd.l);
+			await op_io();
             regs.x.w += (ushort)adjust;
             regs.y.w += (ushort)adjust;
             last_cycle();
-            op_io();
+			await op_io();
             if (Convert.ToBoolean(regs.a.w--))
             {
                 regs.pc.w -= 3;
             }
         }
 
-        public void op_interrupt_e(CPUCoreOpArgument args)
+        public async Task op_interrupt_e(CPUCoreOpArgument args)
         {
             int vectorE = args.x;
             int vectorN = args.y;
-            op_readpc();
-            op_writestack(regs.pc.h);
-            op_writestack(regs.pc.l);
-            op_writestack((byte)regs.p);
-            rd.l = op_readlong((uint)(vectorE + 0));
+			await op_readpc();
+			await op_writestack(regs.pc.h);
+			await op_writestack(regs.pc.l);
+			await op_writestack((byte)regs.p);
+            rd.l = await op_readlong((uint)(vectorE + 0));
             regs.pc.b = 0;
             regs.p.i = Convert.ToBoolean(1);
             regs.p.d = Convert.ToBoolean(0);
             last_cycle();
-            rd.h = op_readlong((uint)(vectorE + 1));
+            rd.h = await op_readlong((uint)(vectorE + 1));
             regs.pc.w = rd.w;
         }
 
-        public void op_interrupt_n(CPUCoreOpArgument args)
+        public async Task op_interrupt_n(CPUCoreOpArgument args)
         {
             int vectorE = args.x;
             int vectorN = args.y;
-            op_readpc();
-            op_writestack(regs.pc.b);
-            op_writestack(regs.pc.h);
-            op_writestack(regs.pc.l);
-            op_writestack((byte)regs.p);
-            rd.l = op_readlong((uint)(vectorN + 0));
+			await op_readpc();
+			await op_writestack(regs.pc.b);
+			await op_writestack(regs.pc.h);
+			await op_writestack(regs.pc.l);
+			await op_writestack((byte)regs.p);
+            rd.l = await op_readlong((uint)(vectorN + 0));
             regs.pc.b = 0x00;
             regs.p.i = Convert.ToBoolean(1);
             regs.p.d = Convert.ToBoolean(0);
             last_cycle();
-            rd.h = op_readlong((uint)(vectorN + 1));
+            rd.h = await op_readlong((uint)(vectorN + 1));
             regs.pc.w = rd.w;
         }
 
-        public void op_stp(CPUCoreOpArgument args)
+        public async Task op_stp(CPUCoreOpArgument args)
         {
             regs.wai = true;
             while (regs.wai)
             {
                 last_cycle();
-                op_io();
+                await op_io();
             }
         }
 
-        public void op_wai(CPUCoreOpArgument args)
+        public async Task op_wai(CPUCoreOpArgument args)
         {
             regs.wai = true;
             while (regs.wai)
             {
                 last_cycle();
-                op_io();
+                await op_io();
             }
-            op_io();
-        }
+            await op_io();
+		}
 
-        public void op_xce(CPUCoreOpArgument args)
+		public async Task op_xce(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             bool carry = regs.p.c;
             regs.p.c = regs.e;
             regs.e = carry;
@@ -2859,23 +2900,23 @@ namespace Snes
                 regs.y.h = 0x00;
             }
             update_table();
-        }
+		}
 
-        public void op_flag(CPUCoreOpArgument args)
+		public async Task op_flag(CPUCoreOpArgument args)
         {
             int mask = args.x;
             int value = args.y;
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.p.Assign((byte)(((uint)regs.p & ~mask) | (uint)value));
-        }
+		}
 
-        public void op_pflag_e(CPUCoreOpArgument args)
+		public async Task op_pflag_e(CPUCoreOpArgument args)
         {
             int mode = args.x;
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             last_cycle();
-            op_io();
+			await op_io();
             regs.p.Assign((byte)(Convert.ToBoolean(mode) ? regs.p | rd.l : (uint)regs.p & ~rd.l));
             regs.p.Assign((byte)(regs.p | 0x30));
             if (regs.p.x)
@@ -2886,12 +2927,12 @@ namespace Snes
             update_table();
         }
 
-        public void op_pflag_n(CPUCoreOpArgument args)
+        public async Task op_pflag_n(CPUCoreOpArgument args)
         {
             int mode = args.x;
-            rd.l = op_readpc();
+            rd.l = await op_readpc();
             last_cycle();
-            op_io();
+			await op_io();
             regs.p.Assign((byte)(Convert.ToBoolean(mode) ? regs.p | rd.l : (uint)regs.p & ~rd.l));
             if (regs.p.x)
             {
@@ -2901,191 +2942,191 @@ namespace Snes
             update_table();
         }
 
-        public void op_transfer_b(CPUCoreOpArgument args)
+        public async Task op_transfer_b(CPUCoreOpArgument args)
         {
             int from = args.x;
             int to = args.y;
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.r[to].l = regs.r[from].l;
             regs.p.n = Convert.ToBoolean(regs.r[to].l & 0x80);
             regs.p.z = (regs.r[to].l == 0);
         }
 
-        public void op_transfer_w(CPUCoreOpArgument args)
+        public async Task op_transfer_w(CPUCoreOpArgument args)
         {
             int from = args.x;
             int to = args.y;
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.r[to].w = regs.r[from].w;
             regs.p.n = Convert.ToBoolean(regs.r[to].w & 0x8000);
             regs.p.z = (regs.r[to].w == 0);
-        }
+		}
 
-        public void op_tcs_e(CPUCoreOpArgument args)
+		public async Task op_tcs_e(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+            await op_io_irq();
             regs.s.l = regs.a.l;
-        }
+		}
 
-        public void op_tcs_n(CPUCoreOpArgument args)
+		public async Task op_tcs_n(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+			await op_io_irq();
             regs.s.w = regs.a.w;
-        }
+		}
 
-        public void op_tsx_b(CPUCoreOpArgument args)
+		public async Task op_tsx_b(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+			await op_io_irq();
             regs.x.l = regs.s.l;
             regs.p.n = Convert.ToBoolean(regs.x.l & 0x80);
             regs.p.z = (regs.x.l == 0);
-        }
+		}
 
-        public void op_tsx_w(CPUCoreOpArgument args)
+		public async Task op_tsx_w(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+			await op_io_irq();
             regs.x.w = regs.s.w;
             regs.p.n = Convert.ToBoolean(regs.x.w & 0x8000);
             regs.p.z = (regs.x.w == 0);
-        }
+		}
 
-        public void op_txs_e(CPUCoreOpArgument args)
+		public async Task op_txs_e(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+			await op_io_irq();
             regs.s.l = regs.x.l;
-        }
+		}
 
-        public void op_txs_n(CPUCoreOpArgument args)
+		public async Task op_txs_n(CPUCoreOpArgument args)
         {
             last_cycle();
-            op_io_irq();
+			await op_io_irq();
             regs.s.w = regs.x.w;
-        }
+		}
 
-        public void op_push_b(CPUCoreOpArgument args)
+		public async Task op_push_b(CPUCoreOpArgument args)
         {
             int n = args.x;
-            op_io();
+			await op_io();
             last_cycle();
-            op_writestack(regs.r[n].l);
-        }
+			await op_writestack(regs.r[n].l);
+		}
 
-        public void op_push_w(CPUCoreOpArgument args)
+		public async Task op_push_w(CPUCoreOpArgument args)
         {
             int n = args.x;
-            op_io();
-            op_writestack(regs.r[n].h);
+			await op_io();
+			await op_writestack(regs.r[n].h);
             last_cycle();
-            op_writestack(regs.r[n].l);
-        }
+			await op_writestack(regs.r[n].l);
+		}
 
-        public void op_phd_e(CPUCoreOpArgument args)
+		public async Task op_phd_e(CPUCoreOpArgument args)
         {
-            op_io();
-            op_writestackn(regs.d.h);
+			await op_io();
+			await op_writestackn(regs.d.h);
             last_cycle();
-            op_writestackn(regs.d.l);
+			await op_writestackn(regs.d.l);
             regs.s.h = 0x01;
-        }
+		}
 
-        public void op_phd_n(CPUCoreOpArgument args)
+		public async Task op_phd_n(CPUCoreOpArgument args)
         {
-            op_io();
-            op_writestackn(regs.d.h);
+			await op_io();
+			await op_writestackn(regs.d.h);
             last_cycle();
-            op_writestackn(regs.d.l);
-        }
+			await op_writestackn(regs.d.l);
+		}
 
-        public void op_phb(CPUCoreOpArgument args)
+		public async Task op_phb(CPUCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             last_cycle();
-            op_writestack(regs.db);
-        }
+			await op_writestack(regs.db);
+		}
 
-        public void op_phk(CPUCoreOpArgument args)
+		public async Task op_phk(CPUCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             last_cycle();
-            op_writestack(regs.pc.b);
-        }
+			await op_writestack(regs.pc.b);
+		}
 
-        public void op_php(CPUCoreOpArgument args)
+		public async Task op_php(CPUCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             last_cycle();
-            op_writestack((byte)regs.p);
-        }
+			await op_writestack((byte)regs.p);
+		}
 
-        public void op_pull_b(CPUCoreOpArgument args)
+		public async Task op_pull_b(CPUCoreOpArgument args)
         {
             int n = args.x;
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             last_cycle();
-            regs.r[n].l = op_readstack();
+            regs.r[n].l = await op_readstack();
             regs.p.n = Convert.ToBoolean(regs.r[n].l & 0x80);
             regs.p.z = (regs.r[n].l == 0);
         }
 
-        public void op_pull_w(CPUCoreOpArgument args)
+        public async Task op_pull_w(CPUCoreOpArgument args)
         {
             int n = args.x;
-            op_io();
-            op_io();
-            regs.r[n].l = op_readstack();
+			await op_io();
+			await op_io();
+            regs.r[n].l = await op_readstack();
             last_cycle();
-            regs.r[n].h = op_readstack();
+            regs.r[n].h = await op_readstack();
             regs.p.n = Convert.ToBoolean(regs.r[n].w & 0x8000);
             regs.p.z = (regs.r[n].w == 0);
         }
 
-        public void op_pld_e(CPUCoreOpArgument args)
+        public async Task op_pld_e(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.d.l = op_readstackn();
+			await op_io();
+			await op_io();
+            regs.d.l = await op_readstackn();
             last_cycle();
-            regs.d.h = op_readstackn();
+            regs.d.h = await op_readstackn();
             regs.p.n = Convert.ToBoolean(regs.d.w & 0x8000);
             regs.p.z = (regs.d.w == 0);
             regs.s.h = 0x01;
         }
 
-        public void op_pld_n(CPUCoreOpArgument args)
+        public async Task op_pld_n(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.d.l = op_readstackn();
+			await op_io();
+			await op_io();
+            regs.d.l = await op_readstackn();
             last_cycle();
-            regs.d.h = op_readstackn();
+            regs.d.h = await op_readstackn();
             regs.p.n = Convert.ToBoolean(regs.d.w & 0x8000);
             regs.p.z = (regs.d.w == 0);
         }
 
-        public void op_plb(CPUCoreOpArgument args)
+        public async Task op_plb(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             last_cycle();
-            regs.db = op_readstack();
+            regs.db = await op_readstack();
             regs.p.n = Convert.ToBoolean(regs.db & 0x80);
             regs.p.z = (regs.db == 0);
         }
 
-        public void op_plp_e(CPUCoreOpArgument args)
+        public async Task op_plp_e(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             last_cycle();
-            regs.p.Assign((byte)(op_readstack() | 0x30));
+            regs.p.Assign((byte)(await op_readstack() | 0x30));
             if (regs.p.x)
             {
                 regs.x.h = 0x00;
@@ -3094,12 +3135,12 @@ namespace Snes
             update_table();
         }
 
-        public void op_plp_n(CPUCoreOpArgument args)
+        public async Task op_plp_n(CPUCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             last_cycle();
-            regs.p.Assign(op_readstack());
+            regs.p.Assign(await op_readstack());
             if (regs.p.x)
             {
                 regs.x.h = 0x00;
@@ -3108,69 +3149,69 @@ namespace Snes
             update_table();
         }
 
-        public void op_pea_e(CPUCoreOpArgument args)
+        public async Task op_pea_e(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_writestackn(aa.h);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_writestackn(aa.h);
             last_cycle();
-            op_writestackn(aa.l);
+			await op_writestackn(aa.l);
             regs.s.h = 0x01;
         }
 
-        public void op_pea_n(CPUCoreOpArgument args)
+        public async Task op_pea_n(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_writestackn(aa.h);
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_writestackn(aa.h);
             last_cycle();
-            op_writestackn(aa.l);
+			await op_writestackn(aa.l);
         }
 
-        public void op_pei_e(CPUCoreOpArgument args)
+        public async Task op_pei_e(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_writestackn(aa.h);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_writestackn(aa.h);
             last_cycle();
-            op_writestackn(aa.l);
+			await op_writestackn(aa.l);
             regs.s.h = 0x01;
         }
 
-        public void op_pei_n(CPUCoreOpArgument args)
+        public async Task op_pei_n(CPUCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io_cond2();
-            aa.l = op_readdp(dp + 0U);
-            aa.h = op_readdp(dp + 1U);
-            op_writestackn(aa.h);
+            dp = await op_readpc();
+			await op_io_cond2();
+            aa.l = await op_readdp(dp + 0U);
+            aa.h = await op_readdp(dp + 1U);
+			await op_writestackn(aa.h);
             last_cycle();
-            op_writestackn(aa.l);
+			await op_writestackn(aa.l);
         }
 
-        public void op_per_e(CPUCoreOpArgument args)
+        public async Task op_per_e(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
             rd.w = (ushort)(regs.pc.d + (short)aa.w);
-            op_writestackn(rd.h);
+			await op_writestackn(rd.h);
             last_cycle();
-            op_writestackn(rd.l);
+			await op_writestackn(rd.l);
             regs.s.h = 0x01;
         }
 
-        public void op_per_n(CPUCoreOpArgument args)
+        public async Task op_per_n(CPUCoreOpArgument args)
         {
-            aa.l = op_readpc();
-            aa.h = op_readpc();
-            op_io();
+            aa.l = await op_readpc();
+            aa.h = await op_readpc();
+			await op_io();
             rd.w = (ushort)(regs.pc.d + (short)aa.w);
-            op_writestackn(rd.h);
+			await op_writestackn(rd.h);
             last_cycle();
-            op_writestackn(rd.l);
+			await op_writestackn(rd.l);
         }
 
         public ArraySegment<CPUCoreOperation> opcode_table;

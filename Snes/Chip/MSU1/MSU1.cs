@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -15,8 +16,8 @@ namespace Snes
         public void power() { throw new NotImplementedException(); }
         public void reset() { throw new NotImplementedException(); }
 
-        public byte mmio_read(uint addr) { throw new NotImplementedException(); }
-        public void mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public Task<byte> mmio_read(uint addr) { throw new NotImplementedException(); }
+        public Task mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
 
         public void serialize(Serializer s)
         {

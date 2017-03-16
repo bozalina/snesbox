@@ -139,7 +139,7 @@ namespace Snes
         public static bool decode(string s, out uint addr, out byte data, out Type type)
         {
             string t = s;
-            t.ToLower();
+            t = t.ToLower();
 
             addr = data = 0;
             type = Type.GameGenie;

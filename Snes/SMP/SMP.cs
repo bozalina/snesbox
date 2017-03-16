@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -13,11 +15,11 @@ namespace Snes
             DSP.dsp.Processor.clock -= clocks;
         }
 
-        public void synchronize_cpu()
+        public async Task synchronize_cpu()
         {
             if (Processor.clock >= 0 && Scheduler.scheduler.sync != Scheduler.SynchronizeMode.All)
             {
-                Libco.Switch(CPU.cpu.Processor.thread);
+                await Libco.Switch(CPU.cpu.Processor.thread);
             }
         }
 
@@ -46,31 +48,31 @@ namespace Snes
             StaticRAM.apuram[0xf4 + (uint)port] = data;
         }
 
-        public void enter()
+        public async Task enter(CancellationToken cancellationToken)
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (Scheduler.scheduler.sync == Scheduler.SynchronizeMode.All)
                 {
-                    Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
+                    await Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
                 }
 
-                op_step();
+                await op_step();
             }
         }
 
-        public void power()
+        public async Task power()
         {   //targets not initialized/changed upon reset
             t0.target = 0;
             t1.target = 0;
             t2.target = 0;
 
-            reset();
+            await reset();
         }
 
-        public void reset()
+        public async Task reset()
         {
-            Processor.create("SMP", Enter, System.system.apu_frequency);
+            Processor.create(Enter, System.system.apu_frequency);
 
             regs.pc = 0xffc0;
             regs.a.Array[regs.a.Offset] = 0x00;
@@ -81,7 +83,7 @@ namespace Snes
 
             for (uint i = 0; i < StaticRAM.apuram.size(); i++)
             {
-                StaticRAM.apuram.write(i, 0x00);
+                await StaticRAM.apuram.write(i, 0x00);
             }
 
             status.clock_counter = 0;
@@ -202,7 +204,7 @@ namespace Snes
             }
         }
 
-        private byte op_busread(ushort addr)
+        private async Task<byte> op_busread(ushort addr)
         {
             byte r = default(byte);
             if ((addr & 0xfff0) == 0x00f0)
@@ -235,7 +237,7 @@ namespace Snes
                     case 0xf6:    //CPUIO2
                     case 0xf7:
                         {  //CPUIO3
-                            synchronize_cpu();
+                            await synchronize_cpu();
 #if PERFORMANCE
                             r = CPU.cpu.port_read((byte)addr);
 #else
@@ -287,7 +289,7 @@ namespace Snes
             return r;
         }
 
-        private void op_buswrite(ushort addr, byte data)
+        private async Task op_buswrite(ushort addr, byte data)
         {
             if ((addr & 0xfff0) == 0x00f0)
             {  //$00f0-00ff
@@ -321,7 +323,7 @@ namespace Snes
                             {
                                 //one-time clearing of APU port read registers,
                                 //emulated by simulating CPU writes of 0x00
-                                synchronize_cpu();
+                                await synchronize_cpu();
                                 if (Convert.ToBoolean(data & 0x20))
                                 {
 #if PERFORMANCE
@@ -383,7 +385,7 @@ namespace Snes
                     case 0xf6:    //CPUIO2
                     case 0xf7:
                         {  //CPUIO3
-                            synchronize_cpu();
+                            await synchronize_cpu();
                             port_write(new uint2(addr), data);
                         } break;
                     case 0xf8:
@@ -419,33 +421,33 @@ namespace Snes
             ram_write(addr, data);
         }
 
-        public override void op_io()
+        public override async Task op_io()
         {
-            add_clocks(24);
-            cycle_edge();
+            await add_clocks(24);
+            await cycle_edge();
         }
 
-        public override byte op_read(ushort addr)
+        public override async Task<byte> op_read(ushort addr)
         {
-            add_clocks(12);
-            byte r = op_busread(addr);
-            add_clocks(12);
-            cycle_edge();
+            await add_clocks(12);
+            byte r = await op_busread(addr);
+            await add_clocks(12);
+            await cycle_edge();
             return r;
         }
 
-        public override void op_write(ushort addr, byte data)
+        public override async Task op_write(ushort addr, byte data)
         {
-            add_clocks(24);
-            op_buswrite(addr, data);
-            cycle_edge();
+            await add_clocks(24);
+            await op_buswrite(addr, data);
+            await cycle_edge();
         }
 
         private sSMPTimer t0 = new sSMPTimer(192);
         private sSMPTimer t1 = new sSMPTimer(192);
         private sSMPTimer t2 = new sSMPTimer(24);
 
-        private void add_clocks(uint clocks)
+        private async Task add_clocks(uint clocks)
         {
             step(clocks);
             synchronize_dsp();
@@ -454,11 +456,11 @@ namespace Snes
             //sync if S-SMP is more than 24 samples ahead of S-CPU
             if (Processor.clock > +(768 * 24 * (long)24000000))
             {
-                synchronize_cpu();
+                await synchronize_cpu();
             }
         }
 
-        private void cycle_edge()
+        private async Task cycle_edge()
         {
             t0.tick();
             t1.tick();
@@ -471,15 +473,15 @@ namespace Snes
                 case 0:
                     break;                       //100% speed
                 case 1:
-                    add_clocks(24);
+                    await add_clocks(24);
                     break;       // 50% speed
                 case 2:
                     while (true)
                     {
-                        add_clocks(24);  //  0% speed -- locks S-SMP
+                        await add_clocks(24);  //  0% speed -- locks S-SMP
                     }
                 case 3:
-                    add_clocks(24 * 9);
+                    await add_clocks(24 * 9);
                     break;   // 10% speed
             }
         }
@@ -534,14 +536,15 @@ namespace Snes
 
         private Status status = new Status();
 
-        private static void Enter()
+        private static async Task Enter(PauseToken pauseToken, CancellationToken cancellationToken)
         {
-            SMP.smp.enter();
+	        await pauseToken.WaitWhilePausedAsync();
+            await SMP.smp.enter(cancellationToken);
         }
 
-        private void op_step()
+        private async Task op_step()
         {
-            this.opcode_table[op_readpc()].Invoke();
+            await this.opcode_table[await op_readpc()].Invoke();
         }
 
         private Processor _processor = new Processor();

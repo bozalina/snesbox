@@ -1,7 +1,9 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
-    public delegate SMPCoreOpResult SMPCoreOp(SMPCoreOpArgument args);
+    public delegate Task<SMPCoreOpResult> SMPCoreOp(SMPCoreOpArgument args);
 
     public class SMPCoreOperation
     {
@@ -14,9 +16,9 @@ namespace Snes
             this.args = args;
         }
 
-        public void Invoke()
+        public async Task Invoke()
         {
-            op(args);
+            await op(args);
         }
     }
 }

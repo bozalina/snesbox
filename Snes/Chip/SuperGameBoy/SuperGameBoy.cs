@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -12,11 +13,11 @@ namespace Snes
         public void save() { throw new NotImplementedException(); }
 
         public IMMIO[] mmio = new IMMIO[3];
-        public byte mmio_read(uint addr) { throw new NotImplementedException(); }
-        public void mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public Task<byte> mmio_read(uint addr) { throw new NotImplementedException(); }
+        public Task mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
 
-        public override byte read(uint addr) { throw new NotImplementedException(); }
-        public override void write(uint addr, byte data) { throw new NotImplementedException(); }
+        public override Task<byte> read(uint addr) { throw new NotImplementedException(); }
+        public override Task write(uint addr, byte data) { throw new NotImplementedException(); }
 
         public void init() {  /*throw new NotImplementedException();*/  }
         public void enable() { throw new NotImplementedException(); }

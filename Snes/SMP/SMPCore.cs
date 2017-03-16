@@ -1,43 +1,44 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
 {
     abstract partial class SMPCore
     {
-        public byte op_readpc()
+        public async Task<byte> op_readpc()
         {
-            return op_read(regs.pc++);
+            return await op_read(regs.pc++);
         }
 
-        public byte op_readstack()
+        public async Task<byte> op_readstack()
         {
-            return op_read((ushort)(0x0100 | ++regs.sp.Array[regs.sp.Offset]));
+            return await op_read((ushort)(0x0100 | ++regs.sp.Array[regs.sp.Offset]));
         }
 
-        public void op_writestack(byte data)
+        public async Task op_writestack(byte data)
         {
-            op_write((ushort)(0x0100 | regs.sp.Array[regs.sp.Offset]--), data);
+            await op_write((ushort)(0x0100 | regs.sp.Array[regs.sp.Offset]--), data);
         }
 
-        public byte op_readaddr(ushort addr)
+        public async Task<byte> op_readaddr(ushort addr)
         {
-            return op_read(addr);
+            return await op_read(addr);
         }
 
-        public void op_writeaddr(ushort addr, byte data)
+        public async Task op_writeaddr(ushort addr, byte data)
         {
-            op_write(addr, data);
+            await op_write(addr, data);
         }
 
-        public byte op_readdp(byte addr)
+        public async Task<byte> op_readdp(byte addr)
         {
-            return op_read((ushort)((Convert.ToUInt32(regs.p.p) << 8) + addr));
+            return await op_read((ushort)((Convert.ToUInt32(regs.p.p) << 8) + addr));
         }
 
-        public void op_writedp(byte addr, byte data)
+        public async Task op_writedp(byte addr, byte data)
         {
-            op_write((ushort)((Convert.ToUInt32(regs.p.p) << 8) + addr), data);
+            await op_write((ushort)((Convert.ToUInt32(regs.p.p) << 8) + addr), data);
         }
 
         public void disassemble_opcode(out string s, ushort addr)
@@ -863,11 +864,11 @@ namespace Snes
         public ushort dp, sp, rd, wr, bit, ya;
         public enum OpCode { A = 0, X = 1, Y = 2, SP = 3 };
 
-        public abstract void op_io();
-        public abstract byte op_read(ushort addr);
-        public abstract void op_write(ushort addr, byte data);
+        public abstract Task op_io();
+        public abstract Task<byte> op_read(ushort addr);
+        public abstract Task op_write(ushort addr, byte data);
 
-        public SMPCoreOpResult op_adc(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_adc(SMPCoreOpArgument args)
         {
             int r = args.x_byte + args.y_byte + Convert.ToInt32(regs.p.c);
             regs.p.n = Convert.ToBoolean(r & 0x80);
@@ -875,78 +876,78 @@ namespace Snes
             regs.p.h = Convert.ToBoolean((args.x_byte ^ args.y_byte ^ r) & 0x10);
             regs.p.z = (byte)r == 0;
             regs.p.c = r > 0xff;
-            return new SMPCoreOpResult() { result_byte = (byte)r };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = (byte)r });
         }
 
-        public SMPCoreOpResult op_addw(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_addw(SMPCoreOpArgument args)
         {
             ushort r;
             regs.p.c = Convert.ToBoolean(0);
-            r = op_adc(new SMPCoreOpArgument() { x_byte = (byte)args.x_ushort, y_byte = (byte)args.y_ushort }).result_byte;
-            r |= (ushort)(op_adc(new SMPCoreOpArgument() { x_byte = (byte)(args.x_ushort >> 8), y_byte = (byte)(args.y_ushort >> 8) }).result_byte << 8);
+            r = (await op_adc(new SMPCoreOpArgument() { x_byte = (byte)args.x_ushort, y_byte = (byte)args.y_ushort })).result_byte;
+            r |= (ushort)((await op_adc(new SMPCoreOpArgument() { x_byte = (byte)(args.x_ushort >> 8), y_byte = (byte)(args.y_ushort >> 8) })).result_byte << 8);
             regs.p.z = r == 0;
             return new SMPCoreOpResult() { result_ushort = r };
         }
 
-        public SMPCoreOpResult op_and(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_and(SMPCoreOpArgument args)
         {
             args.x_byte &= args.y_byte;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_cmp(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_cmp(SMPCoreOpArgument args)
         {
             int r = args.x_byte - args.y_byte;
             regs.p.n = Convert.ToBoolean(r & 0x80);
             regs.p.z = (byte)r == 0;
             regs.p.c = r >= 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_cmpw(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_cmpw(SMPCoreOpArgument args)
         {
             int r = args.x_ushort - args.y_ushort;
             regs.p.n = Convert.ToBoolean(r & 0x8000);
             regs.p.z = (ushort)r == 0;
             regs.p.c = r >= 0;
-            return new SMPCoreOpResult() { result_ushort = args.x_ushort };
+            return Task.FromResult(new SMPCoreOpResult() { result_ushort = args.x_ushort });
         }
 
-        public SMPCoreOpResult op_eor(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_eor(SMPCoreOpArgument args)
         {
             args.x_byte ^= args.y_byte;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_inc(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_inc(SMPCoreOpArgument args)
         {
             args.x_byte++;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_dec(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_dec(SMPCoreOpArgument args)
         {
             args.x_byte--;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_or(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_or(SMPCoreOpArgument args)
         {
             args.x_byte |= args.y_byte;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_sbc(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_sbc(SMPCoreOpArgument args)
         {
             int r = args.x_byte - args.y_byte - Convert.ToInt32(!regs.p.c);
             regs.p.n = Convert.ToBoolean(r & 0x80);
@@ -954,298 +955,298 @@ namespace Snes
             regs.p.h = !Convert.ToBoolean(((args.x_byte ^ args.y_byte ^ r) & 0x10));
             regs.p.z = (byte)r == 0;
             regs.p.c = r >= 0;
-            return new SMPCoreOpResult() { result_byte = (byte)r };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = (byte)r });
         }
 
-        public SMPCoreOpResult op_subw(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_subw(SMPCoreOpArgument args)
         {
             ushort r;
             regs.p.c = Convert.ToBoolean(1);
-            r = op_sbc(new SMPCoreOpArgument() { x_byte = (byte)args.x_ushort, y_byte = (byte)args.y_ushort }).result_byte;
-            r |= (ushort)(op_sbc(new SMPCoreOpArgument() { x_byte = (byte)(args.x_ushort >> 8), y_byte = (byte)(args.y_ushort >> 8) }).result_byte << 8);
+            r = (await op_sbc(new SMPCoreOpArgument() { x_byte = (byte)args.x_ushort, y_byte = (byte)args.y_ushort })).result_byte;
+            r |= (ushort)((await op_sbc(new SMPCoreOpArgument() { x_byte = (byte)(args.x_ushort >> 8), y_byte = (byte)(args.y_ushort >> 8) })).result_byte << 8);
             regs.p.z = r == 0;
             return new SMPCoreOpResult() { result_ushort = r };
         }
 
-        public SMPCoreOpResult op_asl(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_asl(SMPCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(args.x_byte & 0x80);
             args.x_byte <<= 1;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_lsr(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_lsr(SMPCoreOpArgument args)
         {
             regs.p.c = Convert.ToBoolean(args.x_byte & 0x01);
             args.x_byte >>= 1;
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_rol(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_rol(SMPCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c);
             regs.p.c = Convert.ToBoolean(args.x_byte & 0x80);
             args.x_byte = (byte)((uint)(args.x_byte << 1) | carry);
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_ror(SMPCoreOpArgument args)
+        public Task<SMPCoreOpResult> op_ror(SMPCoreOpArgument args)
         {
             uint carry = Convert.ToUInt32(regs.p.c) << 7;
             regs.p.c = Convert.ToBoolean(args.x_byte & 0x01);
             args.x_byte = (byte)(carry | (uint)(args.x_byte >> 1));
             regs.p.n = Convert.ToBoolean(args.x_byte & 0x80);
             regs.p.z = args.x_byte == 0;
-            return new SMPCoreOpResult() { result_byte = args.x_byte };
+            return Task.FromResult(new SMPCoreOpResult() { result_byte = args.x_byte });
         }
 
-        public SMPCoreOpResult op_mov_reg_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_reg_reg(SMPCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             regs.r[args.to] = regs.r[args.from];
             regs.p.n = Convert.ToBoolean(regs.r[args.to] & 0x80);
             regs.p.z = (regs.r[args.to] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_sp_x(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_sp_x(SMPCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             regs.sp.Array[regs.sp.Offset] = regs.x.Array[regs.x.Offset];
             return null;
         }
 
-        public SMPCoreOpResult op_mov_reg_const(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_reg_const(SMPCoreOpArgument args)
         {
-            regs.r[args.n] = op_readpc();
+            regs.r[args.n] = await op_readpc();
             regs.p.n = Convert.ToBoolean(regs.r[args.n] & 0x80);
             regs.p.z = (regs.r[args.n] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_a_ix(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_a_ix(SMPCoreOpArgument args)
         {
-            op_io();
-            regs.a.Array[regs.a.Offset] = op_readdp(regs.x.Array[regs.x.Offset]);
+			await op_io();
+            regs.a.Array[regs.a.Offset] = await op_readdp(regs.x.Array[regs.x.Offset]);
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_a_ixinc(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_a_ixinc(SMPCoreOpArgument args)
         {
-            op_io();
-            regs.a.Array[regs.a.Offset] = op_readdp(regs.x.Array[regs.x.Offset]++);
-            op_io();
+			await op_io();
+            regs.a.Array[regs.a.Offset] = await op_readdp(regs.x.Array[regs.x.Offset]++);
+			await op_io();
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_reg_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_reg_dp(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            regs.r[args.n] = op_readdp((byte)sp);
+            sp = await op_readpc();
+            regs.r[args.n] = await op_readdp((byte)sp);
             regs.p.n = Convert.ToBoolean(regs.r[args.n] & 0x80);
             regs.p.z = (regs.r[args.n] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_reg_dpr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_reg_dpr(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
-            regs.r[args.n] = op_readdp((byte)(sp + regs.r[args.i]));
+            sp = await op_readpc();
+			await op_io();
+            regs.r[args.n] = await op_readdp((byte)(sp + regs.r[args.i]));
             regs.p.n = Convert.ToBoolean(regs.r[args.n] & 0x80);
             regs.p.z = (regs.r[args.n] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_reg_addr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_reg_addr(SMPCoreOpArgument args)
         {
-            sp = (ushort)(op_readpc() << 0);
-            sp |= (ushort)(op_readpc() << 8);
-            regs.r[args.n] = op_readaddr(sp);
+            sp = (ushort)(await op_readpc() << 0);
+            sp |= (ushort)(await op_readpc() << 8);
+            regs.r[args.n] = await op_readaddr(sp);
             regs.p.n = Convert.ToBoolean(regs.r[args.n] & 0x80);
             regs.p.z = (regs.r[args.n] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_a_addrr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_a_addrr(SMPCoreOpArgument args)
         {
-            sp = (ushort)(op_readpc() << 0);
-            sp |= (ushort)(op_readpc() << 8);
-            op_io();
-            regs.a.Array[regs.a.Offset] = op_readaddr((ushort)(sp + regs.r[args.i]));
+            sp = (ushort)(await op_readpc() << 0);
+            sp |= (ushort)(await op_readpc() << 8);
+			await op_io();
+            regs.a.Array[regs.a.Offset] = await op_readaddr((ushort)(sp + regs.r[args.i]));
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_a_idpx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_a_idpx(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() + regs.x.Array[regs.x.Offset]);
-            op_io();
-            sp = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            sp |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            regs.a.Array[regs.a.Offset] = op_readaddr(sp);
+            dp = (ushort)(await op_readpc() + regs.x.Array[regs.x.Offset]);
+			await op_io();
+            sp = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+            sp |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+            regs.a.Array[regs.a.Offset] = await op_readaddr(sp);
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_a_idpy(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_a_idpy(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
-            sp = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            sp |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            regs.a.Array[regs.a.Offset] = op_readaddr((ushort)(sp + regs.y.Array[regs.y.Offset]));
+            dp = await op_readpc();
+			await op_io();
+            sp = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+            sp |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+            regs.a.Array[regs.a.Offset] = await op_readaddr((ushort)(sp + regs.y.Array[regs.y.Offset]));
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_dp_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_dp_dp(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            rd = op_readdp((byte)sp);
-            dp = op_readpc();
-            op_writedp((byte)dp, (byte)rd);
+            sp = await op_readpc();
+            rd = await op_readdp((byte)sp);
+            dp = await op_readpc();
+			await op_writedp((byte)dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_dp_const(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_dp_const(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            dp = op_readpc();
-            op_readdp((byte)dp);
-            op_writedp((byte)dp, (byte)rd);
+            rd = await op_readpc();
+            dp = await op_readpc();
+			await op_readdp((byte)dp);
+			await op_writedp((byte)dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_ix_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_ix_a(SMPCoreOpArgument args)
         {
-            op_io();
-            op_readdp(regs.x.Array[regs.x.Offset]);
-            op_writedp(regs.x.Array[regs.x.Offset], regs.a.Array[regs.a.Offset]);
+			await op_io();
+			await op_readdp(regs.x.Array[regs.x.Offset]);
+			await op_writedp(regs.x.Array[regs.x.Offset], regs.a.Array[regs.a.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_ixinc_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_ixinc_a(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_writedp(regs.x.Array[regs.x.Offset]++, regs.a.Array[regs.a.Offset]);
+			await op_io();
+			await op_io();
+			await op_writedp(regs.x.Array[regs.x.Offset]++, regs.a.Array[regs.a.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_dp_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_dp_reg(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_readdp((byte)dp);
-            op_writedp((byte)dp, regs.r[args.n]);
+            dp = await op_readpc();
+			await op_readdp((byte)dp);
+			await op_writedp((byte)dp, regs.r[args.n]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_dpr_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_dpr_reg(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
+            dp = await op_readpc();
+			await op_io();
             dp += regs.r[args.i];
-            op_readdp((byte)dp);
-            op_writedp((byte)dp, regs.r[args.n]);
+			await op_readdp((byte)dp);
+			await op_writedp((byte)dp, regs.r[args.n]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_addr_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_addr_reg(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            op_readaddr(dp);
-            op_writeaddr(dp, regs.r[args.n]);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+			await op_readaddr(dp);
+			await op_writeaddr(dp, regs.r[args.n]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_addrr_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_addrr_a(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            op_io();
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+			await op_io();
             dp += regs.r[args.i];
-            op_readaddr(dp);
-            op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
+			await op_readaddr(dp);
+			await op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_idpx_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_idpx_a(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            op_io();
+            sp = await op_readpc();
+			await op_io();
             sp += regs.x.Array[regs.x.Offset];
-            dp = (ushort)(op_readdp((byte)(sp + 0)) << 0);
-            dp |= (ushort)(op_readdp((byte)(sp + 1)) << 8);
-            op_readaddr(dp);
-            op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
+            dp = (ushort)(await op_readdp((byte)(sp + 0)) << 0);
+            dp |= (ushort)(await op_readdp((byte)(sp + 1)) << 8);
+			await op_readaddr(dp);
+			await op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov_idpy_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov_idpy_a(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            dp = (ushort)(op_readdp((byte)(sp + 0)) << 0);
-            dp |= (ushort)(op_readdp((byte)(sp + 1)) << 8);
-            op_io();
+            sp = await op_readpc();
+            dp = (ushort)(await op_readdp((byte)(sp + 0)) << 0);
+            dp |= (ushort)(await op_readdp((byte)(sp + 1)) << 8);
+			await op_io();
             dp += regs.y.Array[regs.y.Offset];
-            op_readaddr(dp);
-            op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
+			await op_readaddr(dp);
+			await op_writeaddr(dp, regs.a.Array[regs.a.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_movw_ya_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_movw_ya_dp(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            regs.a.Array[regs.a.Offset] = op_readdp((byte)(sp + 0));
-            op_io();
-            regs.y.Array[regs.y.Offset] = op_readdp((byte)(sp + 1));
+            sp = await op_readpc();
+            regs.a.Array[regs.a.Offset] = await op_readdp((byte)(sp + 0));
+			await op_io();
+            regs.y.Array[regs.y.Offset] = await op_readdp((byte)(sp + 1));
             regs.p.n = Convert.ToBoolean((ushort)regs.ya & 0x8000);
             regs.p.z = ((ushort)regs.ya == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_movw_dp_ya(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_movw_dp_ya(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_readdp((byte)dp);
-            op_writedp((byte)(dp + 0), regs.a.Array[regs.a.Offset]);
-            op_writedp((byte)(dp + 1), regs.y.Array[regs.y.Offset]);
+            dp = await op_readpc();
+			await op_readdp((byte)dp);
+			await op_writedp((byte)(dp + 0), regs.a.Array[regs.a.Offset]);
+			await op_writedp((byte)(dp + 1), regs.y.Array[regs.y.Offset]);
             return null;
         }
 
-        public SMPCoreOpResult op_mov1_c_bit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov1_c_bit(SMPCoreOpArgument args)
         {
-            sp = (ushort)(op_readpc() << 0);
-            sp |= (ushort)(op_readpc() << 8);
+            sp = (ushort)(await op_readpc() << 0);
+            sp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(sp >> 13);
             sp &= 0x1fff;
-            rd = op_readaddr(sp);
+            rd = await op_readaddr(sp);
             regs.p.c = Convert.ToBoolean(rd & (1 << bit));
             return null;
         }
 
-        public SMPCoreOpResult op_mov1_bit_c(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mov1_bit_c(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(dp >> 13);
             dp &= 0x1fff;
-            rd = op_readaddr(dp);
+            rd = await op_readaddr(dp);
             if (regs.p.c)
             {
                 rd |= (ushort)(1 << bit);
@@ -1254,494 +1255,494 @@ namespace Snes
             {
                 rd &= (ushort)(~(1 << bit));
             }
-            op_io();
-            op_writeaddr((byte)dp, (byte)rd);
+			await op_io();
+			await op_writeaddr((byte)dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_bra(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_bra(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            op_io();
-            op_io();
+            rd = await op_readpc();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_branch(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_branch(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
+            rd = await op_readpc();
             if (Convert.ToInt32(Convert.ToBoolean((uint)regs.p & args.flag)) != args.value)
             {
                 return null;
             }
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_bitbranch(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_bitbranch(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            sp = op_readdp((byte)dp);
-            rd = op_readpc();
-            op_io();
+            dp = await op_readpc();
+            sp = await op_readdp((byte)dp);
+            rd = await op_readpc();
+			await op_io();
             if (Convert.ToInt32(Convert.ToBoolean(sp & args.mask)) != args.value)
             {
                 return null;
             }
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_cbne_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_cbne_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            sp = op_readdp((byte)dp);
-            rd = op_readpc();
-            op_io();
+            dp = await op_readpc();
+            sp = await op_readdp((byte)dp);
+            rd = await op_readpc();
+			await op_io();
             if (regs.a.Array[regs.a.Offset] == sp)
             {
                 return null;
             }
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_cbne_dpx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_cbne_dpx(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
-            sp = op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
-            rd = op_readpc();
-            op_io();
+            dp = await op_readpc();
+			await op_io();
+            sp = await op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
+            rd = await op_readpc();
+			await op_io();
             if (regs.a.Array[regs.a.Offset] == sp)
             {
                 return null;
             }
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_dbnz_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_dbnz_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            wr = op_readdp((byte)dp);
-            op_writedp((byte)dp, (byte)--wr);
-            rd = op_readpc();
+            dp = await op_readpc();
+            wr = await op_readdp((byte)dp);
+			await op_writedp((byte)dp, (byte)--wr);
+            rd = await op_readpc();
             if (wr == 0)
             {
                 return null;
             }
-            op_io();
-            op_io();
+            await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_dbnz_y(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_dbnz_y(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            op_io();
+            rd = await op_readpc();
+			await op_io();
             regs.y.Array[regs.y.Offset]--;
-            op_io();
+			await op_io();
             if (regs.y.Array[regs.y.Offset] == 0)
             {
                 return null;
             }
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.pc += (ushort)((sbyte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_jmp_addr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_jmp_addr(SMPCoreOpArgument args)
         {
-            rd = (ushort)(op_readpc() << 0);
-            rd |= (ushort)(op_readpc() << 8);
+            rd = (ushort)(await op_readpc() << 0);
+            rd |= (ushort)(await op_readpc() << 8);
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_jmp_iaddrx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_jmp_iaddrx(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            op_io();
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+			await op_io();
             dp += regs.x.Array[regs.x.Offset];
-            rd = (ushort)(op_readaddr((ushort)(dp + 0)) << 0);
-            rd |= (ushort)(op_readaddr((ushort)(dp + 1)) << 8);
+            rd = (ushort)(await op_readaddr((ushort)(dp + 0)) << 0);
+            rd |= (ushort)(await op_readaddr((ushort)(dp + 1)) << 8);
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_call(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_call(SMPCoreOpArgument args)
         {
-            rd = (ushort)(op_readpc() << 0);
-            rd |= (ushort)(op_readpc() << 8);
-            op_io();
-            op_io();
-            op_io();
-            op_writestack((byte)(regs.pc >> 8));
-            op_writestack((byte)(regs.pc >> 0));
+            rd = (ushort)(await op_readpc() << 0);
+            rd |= (ushort)(await op_readpc() << 8);
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_writestack((byte)(regs.pc >> 8));
+			await op_writestack((byte)(regs.pc >> 0));
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_pcall(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_pcall(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            op_io();
-            op_io();
-            op_writestack((byte)(regs.pc >> 8));
-            op_writestack((byte)(regs.pc >> 0));
+            rd = await op_readpc();
+			await op_io();
+			await op_io();
+			await op_writestack((byte)(regs.pc >> 8));
+			await op_writestack((byte)(regs.pc >> 0));
             regs.pc = (ushort)(0xff00 | rd);
             return null;
         }
 
-        public SMPCoreOpResult op_tcall(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_tcall(SMPCoreOpArgument args)
         {
             dp = (ushort)(0xffde - (args.n << 1));
-            rd = (ushort)(op_readaddr((ushort)(dp + 0)) << 0);
-            rd |= (ushort)(op_readaddr((ushort)(dp + 1)) << 8);
-            op_io();
-            op_io();
-            op_io();
-            op_writestack((byte)(regs.pc >> 8));
-            op_writestack((byte)(regs.pc >> 0));
+            rd = (ushort)(await op_readaddr((ushort)(dp + 0)) << 0);
+            rd |= (ushort)(await op_readaddr((ushort)(dp + 1)) << 8);
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_writestack((byte)(regs.pc >> 8));
+			await op_writestack((byte)(regs.pc >> 0));
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_brk(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_brk(SMPCoreOpArgument args)
         {
-            rd = (ushort)(op_readaddr(0xffde) << 0);
-            rd |= (ushort)(op_readaddr(0xffdf) << 8);
-            op_io();
-            op_io();
-            op_writestack((byte)(regs.pc >> 8));
-            op_writestack((byte)(regs.pc >> 0));
-            op_writestack((byte)(regs.p));
+            rd = (ushort)(await op_readaddr(0xffde) << 0);
+            rd |= (ushort)(await op_readaddr(0xffdf) << 8);
+			await op_io();
+			await op_io();
+			await op_writestack((byte)(regs.pc >> 8));
+			await op_writestack((byte)(regs.pc >> 0));
+			await op_writestack((byte)(regs.p));
             regs.pc = rd;
             regs.p.b = Convert.ToBoolean(1);
             regs.p.i = Convert.ToBoolean(0);
             return null;
         }
 
-        public SMPCoreOpResult op_ret(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_ret(SMPCoreOpArgument args)
         {
-            rd = (ushort)(op_readstack() << 0);
-            rd |= (ushort)(op_readstack() << 8);
-            op_io();
-            op_io();
+            rd = (ushort)(await op_readstack() << 0);
+            rd |= (ushort)(await op_readstack() << 8);
+			await op_io();
+			await op_io();
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_reti(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_reti(SMPCoreOpArgument args)
         {
-            regs.p.Assign(op_readstack());
-            rd = (ushort)(op_readstack() << 0);
-            rd |= (ushort)(op_readstack() << 8);
-            op_io();
-            op_io();
+            regs.p.Assign(await op_readstack());
+            rd = (ushort)(await op_readstack() << 0);
+            rd |= (ushort)(await op_readstack() << 8);
+			await op_io();
+			await op_io();
             regs.pc = rd;
             return null;
         }
 
-        public SMPCoreOpResult op_read_reg_const(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_reg_const(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            regs.r[args.n] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd }).result_byte;
+            rd = await op_readpc();
+            regs.r[args.n] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_a_ix(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_a_ix(SMPCoreOpArgument args)
         {
-            op_io();
-            rd = op_readdp(regs.x.Array[regs.x.Offset]);
-            regs.a.Array[regs.a.Offset] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd }).result_byte;
+			await op_io();
+            rd = await op_readdp(regs.x.Array[regs.x.Offset]);
+            regs.a.Array[regs.a.Offset] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_reg_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_reg_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = op_readdp((byte)dp);
-            regs.r[args.n] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd }).result_byte;
+            dp = await op_readpc();
+            rd = await op_readdp((byte)dp);
+            regs.r[args.n] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_a_dpx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_a_dpx(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
-            rd = op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
-            regs.a.Array[regs.a.Offset] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd }).result_byte;
+            dp = await op_readpc();
+			await op_io();
+            rd = await op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
+            regs.a.Array[regs.a.Offset] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_reg_addr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_reg_addr(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            rd = op_readaddr(dp);
-            regs.r[args.n] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd }).result_byte;
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+            rd = await op_readaddr(dp);
+            regs.r[args.n] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_a_addrr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_a_addrr(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            op_io();
-            rd = op_readaddr((ushort)(dp + regs.r[args.i]));
-            regs.a.Array[regs.a.Offset] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd }).result_byte;
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+			await op_io();
+            rd = await op_readaddr((ushort)(dp + regs.r[args.i]));
+            regs.a.Array[regs.a.Offset] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_a_idpx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_a_idpx(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() + regs.x.Array[regs.x.Offset]);
-            op_io();
-            sp = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            sp |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            rd = op_readaddr(sp);
-            regs.a.Array[regs.a.Offset] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd }).result_byte;
+            dp = (ushort)(await op_readpc() + regs.x.Array[regs.x.Offset]);
+			await op_io();
+            sp = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+            sp |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+            rd = await op_readaddr(sp);
+            regs.a.Array[regs.a.Offset] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_a_idpy(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_a_idpy(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
-            sp = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            sp |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            rd = op_readaddr((ushort)(sp + regs.y.Array[regs.y.Offset]));
-            regs.a.Array[regs.a.Offset] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd }).result_byte;
+            dp = await op_readpc();
+			await op_io();
+            sp = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+            sp |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+            rd = await op_readaddr((ushort)(sp + regs.y.Array[regs.y.Offset]));
+            regs.a.Array[regs.a.Offset] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.a.Array[regs.a.Offset], y_byte = (byte)rd })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_read_ix_iy(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_ix_iy(SMPCoreOpArgument args)
         {
-            op_io();
-            rd = op_readdp(regs.y.Array[regs.y.Offset]);
-            wr = op_readdp(regs.x.Array[regs.x.Offset]);
-            wr = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd }).result_byte;
+			await op_io();
+            rd = await op_readdp(regs.y.Array[regs.y.Offset]);
+            wr = await op_readdp(regs.x.Array[regs.x.Offset]);
+            wr = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd })).result_byte;
             SMPCoreOp cmp = op_cmp;
             if (args.op_func != cmp)
             {
-                op_writedp(regs.x.Array[regs.x.Offset], (byte)wr);
+				await op_writedp(regs.x.Array[regs.x.Offset], (byte)wr);
             }
             else
             {
-                op_io();
+				await op_io();
             }
             return null;
         }
 
-        public SMPCoreOpResult op_read_dp_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_dp_dp(SMPCoreOpArgument args)
         {
-            sp = op_readpc();
-            rd = op_readdp((byte)sp);
-            dp = op_readpc();
-            wr = op_readdp((byte)dp);
-            wr = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd }).result_byte;
+            sp = await op_readpc();
+            rd = await op_readdp((byte)sp);
+            dp = await op_readpc();
+            wr = await op_readdp((byte)dp);
+            wr = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd })).result_byte;
             SMPCoreOp cmp = op_cmp;
             if (args.op_func != cmp)
             {
-                op_writedp((byte)dp, (byte)wr);
+				await op_writedp((byte)dp, (byte)wr);
             }
             else
             {
-                op_io();
+				await op_io();
             }
             return null;
         }
 
-        public SMPCoreOpResult op_read_dp_const(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_dp_const(SMPCoreOpArgument args)
         {
-            rd = op_readpc();
-            dp = op_readpc();
-            wr = op_readdp((byte)dp);
-            wr = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd }).result_byte;
+            rd = await op_readpc();
+            dp = await op_readpc();
+            wr = await op_readdp((byte)dp);
+            wr = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)wr, y_byte = (byte)rd })).result_byte;
             SMPCoreOp cmp = op_cmp;
             if (args.op_func != cmp)
             {
-                op_writedp((byte)dp, (byte)wr);
+				await op_writedp((byte)dp, (byte)wr);
             }
             else
             {
-                op_io();
+				await op_io();
             }
             return null;
         }
 
-        public SMPCoreOpResult op_read_ya_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_read_ya_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            op_io();
-            rd |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            regs.ya.Assign(args.op_func.Invoke(new SMPCoreOpArgument() { x_ushort = (ushort)regs.ya, y_ushort = rd }).result_ushort);
+            dp = await op_readpc();
+            rd = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+			await op_io();
+            rd |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+            regs.ya.Assign((await args.op_func.Invoke(new SMPCoreOpArgument() { x_ushort = (ushort)regs.ya, y_ushort = rd })).result_ushort);
             return null;
         }
 
-        public SMPCoreOpResult op_cmpw_ya_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_cmpw_ya_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = (ushort)(op_readdp((byte)(dp + 0)) << 0);
-            rd |= (ushort)(op_readdp((byte)(dp + 1)) << 8);
-            op_cmpw(new SMPCoreOpArgument() { x_ushort = (ushort)regs.ya, y_ushort = rd });
+            dp = await op_readpc();
+            rd = (ushort)(await op_readdp((byte)(dp + 0)) << 0);
+            rd |= (ushort)(await op_readdp((byte)(dp + 1)) << 8);
+			await op_cmpw(new SMPCoreOpArgument() { x_ushort = (ushort)regs.ya, y_ushort = rd });
             return null;
         }
 
-        public SMPCoreOpResult op_and1_bit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_and1_bit(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(dp >> 13);
             dp &= 0x1fff;
-            rd = op_readaddr(dp);
+            rd = await op_readaddr(dp);
             regs.p.c = Convert.ToBoolean(Convert.ToInt32(regs.p.c) & (Convert.ToInt32(Convert.ToBoolean(rd & (1 << bit))) ^ args.op));
             return null;
         }
 
-        public SMPCoreOpResult op_eor1_bit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_eor1_bit(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(dp >> 13);
             dp &= 0x1fff;
-            rd = op_readaddr(dp);
-            op_io();
+            rd = await op_readaddr(dp);
+			await op_io();
             regs.p.c = Convert.ToBoolean(Convert.ToInt32(regs.p.c) ^ Convert.ToInt32(Convert.ToBoolean(rd & (1 << bit))));
             return null;
         }
 
-        public SMPCoreOpResult op_not1_bit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_not1_bit(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(dp >> 13);
             dp &= 0x1fff;
-            rd = op_readaddr(dp);
+            rd = await op_readaddr(dp);
             rd ^= (ushort)(1 << bit);
-            op_writeaddr(dp, (byte)rd);
+			await op_writeaddr(dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_or1_bit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_or1_bit(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
             bit = (ushort)(dp >> 13);
             dp &= 0x1fff;
-            rd = op_readaddr(dp);
-            op_io();
+            rd = await op_readaddr(dp);
+			await op_io();
             regs.p.c = Convert.ToBoolean(Convert.ToInt32(regs.p.c) | (Convert.ToInt32(Convert.ToBoolean(rd & (1 << bit))) ^ args.op));
             return null;
         }
 
-        public SMPCoreOpResult op_adjust_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjust_reg(SMPCoreOpArgument args)
         {
-            op_io();
-            regs.r[args.n] = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n] }).result_byte;
+			await op_io();
+            regs.r[args.n] = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = regs.r[args.n] })).result_byte;
             return null;
         }
 
-        public SMPCoreOpResult op_adjust_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjust_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = op_readdp((byte)dp);
-            rd = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd }).result_byte;
-            op_writedp((byte)dp, (byte)rd);
+            dp = await op_readpc();
+            rd = await op_readdp((byte)dp);
+            rd = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd })).result_byte;
+			await op_writedp((byte)dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_adjust_dpx(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjust_dpx(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            op_io();
-            rd = op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
-            rd = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd }).result_byte;
-            op_writedp((byte)(dp + regs.x.Array[regs.x.Offset]), (byte)rd);
+            dp = await op_readpc();
+			await op_io();
+            rd = await op_readdp((byte)(dp + regs.x.Array[regs.x.Offset]));
+            rd = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd })).result_byte;
+			await op_writedp((byte)(dp + regs.x.Array[regs.x.Offset]), (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_adjust_addr(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjust_addr(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            rd = op_readaddr(dp);
-            rd = args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd }).result_byte;
-            op_writeaddr(dp, (byte)rd);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+            rd = await op_readaddr(dp);
+            rd = (await args.op_func.Invoke(new SMPCoreOpArgument() { x_byte = (byte)rd })).result_byte;
+            await op_writeaddr(dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_adjust_addr_a(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjust_addr_a(SMPCoreOpArgument args)
         {
-            dp = (ushort)(op_readpc() << 0);
-            dp |= (ushort)(op_readpc() << 8);
-            rd = op_readaddr(dp);
+            dp = (ushort)(await op_readpc() << 0);
+            dp |= (ushort)(await op_readpc() << 8);
+            rd = await op_readaddr(dp);
             regs.p.n = Convert.ToBoolean((regs.a.Array[regs.a.Offset] - rd) & 0x80);
             regs.p.z = ((regs.a.Array[regs.a.Offset] - rd) == 0);
-            op_readaddr(dp);
-            op_writeaddr(dp, (byte)(Convert.ToBoolean(args.op) ? rd | regs.a.Array[regs.a.Offset] : rd & ~regs.a.Array[regs.a.Offset]));
+			await op_readaddr(dp);
+			await op_writeaddr(dp, (byte)(Convert.ToBoolean(args.op) ? rd | regs.a.Array[regs.a.Offset] : rd & ~regs.a.Array[regs.a.Offset]));
             return null;
         }
 
-        public SMPCoreOpResult op_adjustw_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_adjustw_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = (ushort)(op_readdp((byte)dp) << 0);
+            dp = await op_readpc();
+            rd = (ushort)(await op_readdp((byte)dp) << 0);
             rd += (ushort)args.adjust;
-            op_writedp((byte)(dp++), (byte)rd);
-            rd += (ushort)(op_readdp((byte)dp) << 8);
-            op_writedp((byte)dp, (byte)(rd >> 8));
+			await op_writedp((byte)(dp++), (byte)rd);
+            rd += (ushort)(await op_readdp((byte)dp) << 8);
+			await op_writedp((byte)dp, (byte)(rd >> 8));
             regs.p.n = Convert.ToBoolean(rd & 0x8000);
             regs.p.z = (rd == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_nop(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_nop(SMPCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             return null;
         }
 
-        public SMPCoreOpResult op_wait(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_wait(SMPCoreOpArgument args)
         {
             while (true)
             {
-                op_io();
-                op_io();
+				await op_io();
+				await op_io();
             }
         }
 
-        public SMPCoreOpResult op_xcn(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_xcn(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
             regs.a.Array[regs.a.Offset] = (byte)((regs.a.Array[regs.a.Offset] >> 4) | (regs.a.Array[regs.a.Offset] << 4));
             regs.p.n = Convert.ToBoolean(regs.a.Array[regs.a.Offset] & 0x80);
             regs.p.z = (regs.a.Array[regs.a.Offset] == 0);
             return null;
         }
 
-        public SMPCoreOpResult op_daa(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_daa(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             if (regs.p.c || (regs.a.Array[regs.a.Offset]) > 0x99)
             {
                 regs.a.Array[regs.a.Offset] += 0x60;
@@ -1756,10 +1757,10 @@ namespace Snes
             return null;
         }
 
-        public SMPCoreOpResult op_das(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_das(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             if (!regs.p.c || (regs.a.Array[regs.a.Offset]) > 0x99)
             {
                 regs.a.Array[regs.a.Offset] -= 0x60;
@@ -1774,80 +1775,80 @@ namespace Snes
             return null;
         }
 
-        public SMPCoreOpResult op_setbit(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_setbit(SMPCoreOpArgument args)
         {
-            op_io();
+			await op_io();
             regs.p.Assign((byte)(((uint)regs.p & ~args.mask) | (uint)args.value));
             return null;
         }
 
-        public SMPCoreOpResult op_notc(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_notc(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.p.c = !regs.p.c;
             return null;
         }
 
-        public SMPCoreOpResult op_seti(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_seti(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
             regs.p.i = Convert.ToBoolean(args.value);
             return null;
         }
 
-        public SMPCoreOpResult op_setbit_dp(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_setbit_dp(SMPCoreOpArgument args)
         {
-            dp = op_readpc();
-            rd = op_readdp((byte)dp);
+            dp = await op_readpc();
+            rd = await op_readdp((byte)dp);
             rd = (ushort)(Convert.ToBoolean(args.op) ? rd | args.value : rd & ~args.value);
-            op_writedp((byte)dp, (byte)rd);
+			await op_writedp((byte)dp, (byte)rd);
             return null;
         }
 
-        public SMPCoreOpResult op_push_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_push_reg(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_writestack(regs.r[args.n]);
+			await op_io();
+			await op_io();
+			await op_writestack(regs.r[args.n]);
             return null;
         }
 
-        public SMPCoreOpResult op_push_p(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_push_p(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_writestack((byte)regs.p);
+			await op_io();
+			await op_io();
+			await op_writestack((byte)regs.p);
             return null;
         }
 
-        public SMPCoreOpResult op_pop_reg(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_pop_reg(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.r[args.n] = op_readstack();
+			await op_io();
+			await op_io();
+            regs.r[args.n] = await op_readstack();
             return null;
         }
 
-        public SMPCoreOpResult op_pop_p(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_pop_p(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            regs.p.Assign(op_readstack());
+			await op_io();
+			await op_io();
+            regs.p.Assign(await op_readstack());
             return null;
         }
 
-        public SMPCoreOpResult op_mul_ya(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_mul_ya(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
             ya = (ushort)(regs.y.Array[regs.y.Offset] * regs.a.Array[regs.a.Offset]);
             regs.a.Array[regs.a.Offset] = (byte)ya;
             regs.y.Array[regs.y.Offset] = (byte)(ya >> 8);
@@ -1857,19 +1858,19 @@ namespace Snes
             return null;
         }
 
-        public SMPCoreOpResult op_div_ya_x(SMPCoreOpArgument args)
+        public async Task<SMPCoreOpResult> op_div_ya_x(SMPCoreOpArgument args)
         {
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
-            op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
+			await op_io();
             ya = (ushort)regs.ya;
             //overflow set if quotient >= 256
             regs.p.v = !!(regs.y.Array[regs.y.Offset] >= regs.x.Array[regs.x.Offset]);

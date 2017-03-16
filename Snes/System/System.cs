@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -12,11 +13,11 @@ namespace Snes
         public enum Region : uint { NTSC = 0, PAL = 1, Autodetect = 2 }
         public enum ExpansionPortDevice : uint { None = 0, BSX = 1 }
 
-        public void run()
+        public async Task run()
         {
             Scheduler.scheduler.sync = Scheduler.SynchronizeMode.None;
 
-            Scheduler.scheduler.enter();
+            await Scheduler.scheduler.enter();
             if (Scheduler.scheduler.exit_reason == Scheduler.ExitReason.FrameEvent)
             {
                 Input.input.update();
@@ -24,16 +25,16 @@ namespace Snes
             }
         }
 
-        public void runtosave()
+        public async Task runtosave()
         {
             Scheduler.scheduler.sync = Scheduler.SynchronizeMode.CPU;
-            runthreadtosave();
+            await runthreadtosave();
 
             Scheduler.scheduler.thread = SMP.smp.Processor.thread;
-            runthreadtosave();
+			await runthreadtosave();
 
             Scheduler.scheduler.thread = PPU.ppu.Processor.thread;
-            runthreadtosave();
+			await runthreadtosave();
 
 #if ACCURACY
             Scheduler.scheduler.thread = DSP.dsp.Processor.thread;
@@ -44,7 +45,7 @@ namespace Snes
             {
                 IProcessor chip = CPU.cpu.coprocessors[(int)i];
                 Scheduler.scheduler.thread = chip.Processor.thread;
-                runthreadtosave();
+				await runthreadtosave();
             }
         }
 
@@ -99,7 +100,7 @@ namespace Snes
         {
         }
 
-        public void power()
+        public async Task power()
         {
             region = Configuration.config.region;
             expansion = Configuration.config.expansion_port;
@@ -220,8 +221,8 @@ namespace Snes
                 Serial.serial.enable();
             }
 
-            CPU.cpu.power();
-            SMP.smp.power();
+            await CPU.cpu.power();
+            await SMP.smp.power();
             DSP.dsp.power();
             PPU.ppu.power();
 
@@ -333,11 +334,11 @@ namespace Snes
             Input.input.update();
         }
 
-        public void reset()
+        public async Task reset()
         {
             Bus.bus.reset();
-            CPU.cpu.reset();
-            SMP.smp.reset();
+            await CPU.cpu.reset();
+            await SMP.smp.reset();
             DSP.dsp.reset();
             PPU.ppu.reset();
 
@@ -464,12 +465,12 @@ namespace Snes
         {
         }
 
-        public void scanline()
+        public async Task scanline()
         {
             Video.video.scanline();
             if (CPU.cpu.PPUCounter.vcounter() == 241)
             {
-                Scheduler.scheduler.exit(Scheduler.ExitReason.FrameEvent);
+                await Scheduler.scheduler.exit(Scheduler.ExitReason.FrameEvent);
             }
         }
 
@@ -498,7 +499,7 @@ namespace Snes
             return s;
         }
 
-        public bool unserialize(Serializer s)
+        public async Task<bool> unserialize(Serializer s)
         {
             uint signature = 0, version = 0, crc32 = 0;
             byte[] profile = new byte[16], description = new byte[512];
@@ -522,7 +523,7 @@ namespace Snes
                 return false;
             }
 
-            reset();
+            await reset();
             serialize_all(s);
             return true;
         }
@@ -540,11 +541,11 @@ namespace Snes
             get { return inter; }
         }
 
-        private void runthreadtosave()
+        private async Task runthreadtosave()
         {
             while (true)
             {
-                Scheduler.scheduler.enter();
+                await Scheduler.scheduler.enter();
                 if (Scheduler.scheduler.exit_reason == Scheduler.ExitReason.SynchronizeEvent)
                 {
                     break;

@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -13,32 +15,27 @@ namespace Snes
         public enum ExitReason : uint { UnknownEvent, FrameEvent, SynchronizeEvent, DebuggerEvent }
         public ExitReason exit_reason { get; private set; }
 
-        public Thread host_thread; //program thread (used to exit emulation)
-        public Thread thread; //active emulation thread (used to enter emulation)
+        public Task thread; //active emulation thread (used to enter emulation)
 
-        public void enter()
+        public async Task enter()
         {
-            host_thread = Libco.Active();
-            Libco.Switch(thread);
+            await Libco.Switch(thread);
         }
 
-        public void exit(ExitReason reason)
+        public async Task exit(ExitReason reason)
         {
             exit_reason = reason;
-            thread = Libco.Active();
-            Libco.Switch(host_thread);
+	        await Libco.Switch(null);
         }
 
         public void init()
         {
-            host_thread = Libco.Active();
             thread = CPU.cpu.Processor.thread;
             sync = SynchronizeMode.None;
         }
 
         public Scheduler()
         {
-            host_thread = null;
             thread = null;
             exit_reason = ExitReason.UnknownEvent;
         }

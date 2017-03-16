@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -111,8 +112,8 @@ namespace Snes
 
         public void memory_reset() { throw new NotImplementedException(); }
 
-        public byte mmio_read(uint addr) { throw new NotImplementedException(); }
-        public void mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public Task<byte> mmio_read(uint addr) { throw new NotImplementedException(); }
+        public Task mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
 
         public uint cache_access_speed;
         public uint memory_access_speed;

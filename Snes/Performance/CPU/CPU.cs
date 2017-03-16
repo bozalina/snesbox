@@ -1,6 +1,8 @@
 ﻿#if PERFORMANCE
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -22,30 +24,30 @@ namespace Snes
             }
         }
 
-        public void synchronize_smp()
+        public async Task synchronize_smp()
         {
             if (SMP.smp.Processor.clock < 0)
             {
-                Libco.Switch(SMP.smp.Processor.thread);
+                await Libco.Switch(SMP.smp.Processor.thread);
             }
         }
 
-        public void synchronize_ppu()
+        public async Task synchronize_ppu()
         {
             if (PPU.ppu.Processor.clock < 0)
             {
-                Libco.Switch(PPU.ppu.Processor.thread);
+                await Libco.Switch(PPU.ppu.Processor.thread);
             }
         }
 
-        public void synchronize_coprocessor()
+        public async Task synchronize_coprocessor()
         {
             for (uint i = 0; i < coprocessors.Count; i++)
             {
                 IProcessor chip = coprocessors[(int)i];
                 if (chip.Processor.clock < 0)
                 {
-                    Libco.Switch(chip.Processor.thread);
+                    await Libco.Switch(chip.Processor.thread);
                 }
             }
         }
@@ -75,11 +77,11 @@ namespace Snes
             port_data[port & 3] = data;
         }
 
-        public byte mmio_read(uint addr)
+        public async Task<byte> mmio_read(uint addr)
         {
             if ((addr & 0xffc0) == 0x2140)
             {
-                synchronize_smp();
+                await synchronize_smp();
                 return SMP.smp.port_read(new uint2(addr & 3));
             }
 
@@ -87,7 +89,7 @@ namespace Snes
             {
                 case 0x2180:
                     {
-                        byte result = Bus.bus.read(new uint24(0x7e0000 | status.wram_addr));
+                        byte result = await Bus.bus.read(new uint24(0x7e0000 | status.wram_addr));
                         status.wram_addr = (status.wram_addr + 1) & 0x01ffff;
                         return result;
                     }
@@ -210,11 +212,11 @@ namespace Snes
             return regs.mdr;
         }
 
-        public void mmio_write(uint addr, byte data)
+        public async Task mmio_write(uint addr, byte data)
         {
             if ((addr & 0xffc0) == 0x2140)
             {
-                synchronize_smp();
+                await synchronize_smp();
                 port_write((byte)(addr & 3), data);
                 return;
             }
@@ -223,7 +225,7 @@ namespace Snes
             {
                 case 0x2180:
                     {
-                        Bus.bus.write(new uint24(0x7e0000 | status.wram_addr), data);
+                        await Bus.bus.write(new uint24(0x7e0000 | status.wram_addr), data);
                         status.wram_addr = (status.wram_addr + 1) & 0x01ffff;
                         return;
                     }
@@ -348,7 +350,7 @@ namespace Snes
                         }
                         if (Convert.ToBoolean(data))
                         {
-                            dma_run();
+                            await dma_run();
                         }
                         return;
                     }
@@ -442,63 +444,63 @@ namespace Snes
             }
         }
 
-        public override void op_io()
+        public override async Task op_io()
         {
-            add_clocks(6);
+            await add_clocks(6);
         }
 
-        public override byte op_read(uint addr)
+        public override async Task<byte> op_read(uint addr)
         {
-            regs.mdr = Bus.bus.read(new uint24(addr));
-            add_clocks(speed(addr));
+            regs.mdr = await Bus.bus.read(new uint24(addr));
+            await add_clocks(speed(addr));
             return regs.mdr;
         }
 
-        public override void op_write(uint addr, byte data)
+        public override async Task op_write(uint addr, byte data)
         {
-            add_clocks(speed(addr));
-            Bus.bus.write(new uint24(addr), regs.mdr = data);
+            await add_clocks(speed(addr));
+            await Bus.bus.write(new uint24(addr), regs.mdr = data);
         }
 
-        public void enter()
+        public async Task enter(CancellationToken cancellationToken)
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (Scheduler.scheduler.sync == Scheduler.SynchronizeMode.CPU)
                 {
                     Scheduler.scheduler.sync = Scheduler.SynchronizeMode.All;
-                    Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
+                    await Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
                 }
 
                 if (status.nmi_pending)
                 {
                     status.nmi_pending = false;
-                    op_irq((ushort)(regs.e == false ? 0xffea : 0xfffa));
+                    await op_irq((ushort)(regs.e == false ? 0xffea : 0xfffa));
                 }
 
                 if (status.irq_pending)
                 {
                     status.irq_pending = false;
-                    op_irq((ushort)(regs.e == false ? 0xffee : 0xfffe));
+                    await op_irq((ushort)(regs.e == false ? 0xffee : 0xfffe));
                 }
 
-                op_step();
+                await op_step();
             }
         }
 
-        public void power()
+        public async Task power()
         {
             regs.a.Assign(0x0000);
             regs.x.Assign(0x0000);
             regs.y.Assign(0x0000);
             regs.s.Assign(0x01ff);
 
-            reset();
+            await reset();
         }
 
-        public void reset()
+        public async Task reset()
         {
-            Processor.create("CPU", Enter, System.system.cpu_frequency);
+            Processor.create(Enter, System.system.cpu_frequency);
             coprocessors.Clear();
             PPUCounter.reset();
 
@@ -514,8 +516,8 @@ namespace Snes
             regs.wai = false;
             update_table();
 
-            regs.pc.l = Bus.bus.read(new uint24(0xfffc));
-            regs.pc.h = Bus.bus.read(new uint24(0xfffd));
+            regs.pc.l = await Bus.bus.read(new uint24(0xfffc));
+            regs.pc.h = await Bus.bus.read(new uint24(0xfffd));
             regs.pc.b = 0x00;
 
             status.nmi_valid = false;
@@ -647,32 +649,33 @@ namespace Snes
         }
 
         //cpu
-        private static void Enter()
+        private static async Task Enter(PauseToken pauseToken, CancellationToken cancellationToken)
         {
-            cpu.enter();
+	        await pauseToken.WaitWhilePausedAsync();
+            await cpu.enter(cancellationToken);
         }
 
-        private void op_step()
+        private async Task op_step()
         {
-            opcode_table.Array[opcode_table.Offset + op_readpc()].Invoke();
+            await opcode_table.Array[opcode_table.Offset + await op_readpc()].Invoke();
         }
 
-        private void op_irq(ushort vector)
+        private async Task op_irq(ushort vector)
         {
-            op_read(regs.pc.d);
-            op_io();
+            await op_read(regs.pc.d);
+            await op_io();
             if (!regs.e)
             {
-                op_writestack(regs.pc.b);
+                await op_writestack(regs.pc.b);
             }
-            op_writestack(regs.pc.h);
-            op_writestack(regs.pc.l);
-            op_writestack(regs.e ? (byte)((uint)regs.p & ~0x10) : (byte)regs.p);
-            rd.l = op_read(vector + 0U);
+			await op_writestack(regs.pc.h);
+			await op_writestack(regs.pc.l);
+			await op_writestack(regs.e ? (byte)((uint)regs.p & ~0x10) : (byte)regs.p);
+            rd.l = await op_read(vector + 0U);
             regs.pc.b = 0x00;
             regs.p.i = Convert.ToBoolean(1);
             regs.p.d = Convert.ToBoolean(0);
-            rd.h = op_read(vector + 1U);
+            rd.h = await op_read(vector + 1U);
             regs.pc.w = rd.w;
         }
 
@@ -681,18 +684,18 @@ namespace Snes
 
         private PriorityQueue queue;
 
-        private void queue_event(uint id)
+        private async Task queue_event(uint id)
         {
             switch ((QueueEvent)id)
             {
                 case QueueEvent.DramRefresh:
                     {
-                        add_clocks(40);
+                        await add_clocks(40);
                         return;
                     }
                 case QueueEvent.HdmaRun:
                     {
-                        hdma_run();
+                        await hdma_run();
                         return;
                     }
                 case QueueEvent.ControllerLatch:
@@ -726,7 +729,7 @@ namespace Snes
             }
         }
 
-        private void add_clocks(uint clocks)
+        private async Task add_clocks(uint clocks)
         {
             if (status.hirq_enabled)
             {
@@ -783,21 +786,21 @@ namespace Snes
                 status.irq_valid = false;
             }
 
-            PPUCounter.tick(clocks);
-            queue.tick(clocks);
+            await PPUCounter.tick(clocks);
+            await queue.tick(clocks);
             step(clocks);
         }
 
-        private void scanline()
+        private async Task scanline()
         {
-            synchronize_smp();
-            synchronize_ppu();
-            synchronize_coprocessor();
-            System.system.scanline();
+            await synchronize_smp();
+            await synchronize_ppu();
+            await synchronize_coprocessor();
+            await System.system.scanline();
 
             if (PPUCounter.vcounter() == 0)
             {
-                hdma_init();
+                await hdma_init();
             }
 
             queue.enqueue(534, (uint)QueueEvent.DramRefresh);
@@ -914,36 +917,36 @@ namespace Snes
             return true;
         }
 
-        private byte dma_read(uint abus)
+        private async Task<byte> dma_read(uint abus)
         {
             if (dma_addr_valid(abus) == false)
             {
                 return 0x00;
             }
-            return Bus.bus.read(new uint24(abus));
+            return await Bus.bus.read(new uint24(abus));
         }
 
-        private void dma_write(bool valid, uint addr, byte data)
+        private async Task dma_write(bool valid, uint addr, byte data)
         {
             if (valid)
             {
-                Bus.bus.write(new uint24(addr), data);
+                await Bus.bus.write(new uint24(addr), data);
             }
         }
 
-        private void dma_transfer(bool direction, byte bbus, uint abus)
+        private async Task dma_transfer(bool direction, byte bbus, uint abus)
         {
             if (Convert.ToInt32(direction) == 0)
             {
-                byte data = dma_read(abus);
-                add_clocks(8);
-                dma_write(dma_transfer_valid(bbus, abus), (uint)(0x2100 | bbus), data);
+                byte data = await dma_read(abus);
+                await add_clocks(8);
+                await dma_write(dma_transfer_valid(bbus, abus), (uint)(0x2100 | bbus), data);
             }
             else
             {
-                byte data = dma_transfer_valid(bbus, abus) ? Bus.bus.read(new uint24((uint)(0x2100 | bbus))) : (byte)0x00;
-                add_clocks(8);
-                dma_write(dma_addr_valid(abus), abus, data);
+                byte data = dma_transfer_valid(bbus, abus) ? await Bus.bus.read(new uint24((uint)(0x2100 | bbus))) : (byte)0x00;
+                await add_clocks(8);
+                await dma_write(dma_addr_valid(abus), abus, data);
             }
         }
 
@@ -1000,9 +1003,9 @@ namespace Snes
             return (uint)((channel[i].indirect_bank << 16) | (channel[i].union.indirect_addr++));
         }
 
-        private void dma_run()
+        private async Task dma_run()
         {
-            add_clocks(16);
+            await add_clocks(16);
 
             for (uint i = 0; i < 8; i++)
             {
@@ -1010,12 +1013,12 @@ namespace Snes
                 {
                     continue;
                 }
-                add_clocks(8);
+                await add_clocks(8);
 
                 uint index = 0;
                 do
                 {
-                    dma_transfer(channel[i].direction, dma_bbus(i, index++), dma_addr(i));
+                    await dma_transfer(channel[i].direction, dma_bbus(i, index++), dma_addr(i));
                 }
                 while (channel[i].dma_enabled && Convert.ToBoolean(--channel[i].union.transfer_size));
 
@@ -1037,32 +1040,32 @@ namespace Snes
             return false;
         }
 
-        private void hdma_update(uint i)
+        private async Task hdma_update(uint i)
         {
             if ((channel[i].line_counter & 0x7f) == 0)
             {
-                channel[i].line_counter = dma_read(hdma_addr(i));
+                channel[i].line_counter = await dma_read(hdma_addr(i));
                 channel[i].hdma_completed = (channel[i].line_counter == 0);
                 channel[i].hdma_do_transfer = !channel[i].hdma_completed;
-                add_clocks(8);
+                await add_clocks(8);
 
                 if (channel[i].indirect)
                 {
-                    channel[i].union.indirect_addr = (ushort)(dma_read(hdma_addr(i)) << 8);
-                    add_clocks(8);
+                    channel[i].union.indirect_addr = (ushort)(await dma_read(hdma_addr(i)) << 8);
+                    await add_clocks(8);
 
                     //emulating this glitch causes a slight slowdown; only enable if needed
                     //if(!channel[i].hdma_completed || hdma_active_after(i)) {
                     channel[i].union.indirect_addr >>= 8;
-                    channel[i].union.indirect_addr |= (ushort)(dma_read(hdma_addr(i)) << 8);
-                    add_clocks(8);
+                    channel[i].union.indirect_addr |= (ushort)(await dma_read(hdma_addr(i)) << 8);
+                    await add_clocks(8);
                     //}
                 }
             }
         }
 
         private static readonly uint[] transfer_length = { 1, 2, 2, 4, 4, 4, 2, 4 };
-        private void hdma_run()
+        private async Task hdma_run()
         {
             uint channels = 0;
             for (uint i = 0; i < 8; i++)
@@ -1077,7 +1080,7 @@ namespace Snes
                 return;
             }
 
-            add_clocks(16);
+            await add_clocks(16);
             for (uint i = 0; i < 8; i++)
             {
                 if (channel[i].hdma_enabled == false || channel[i].hdma_completed == true)
@@ -1092,7 +1095,7 @@ namespace Snes
                     for (uint index = 0; index < length; index++)
                     {
                         uint addr = channel[i].indirect == false ? hdma_addr(i) : hdma_iaddr(i);
-                        dma_transfer(channel[i].direction, dma_bbus(i, index), addr);
+                        await dma_transfer(channel[i].direction, dma_bbus(i, index), addr);
                     }
                 }
             }
@@ -1106,13 +1109,13 @@ namespace Snes
 
                 channel[i].line_counter--;
                 channel[i].hdma_do_transfer = Convert.ToBoolean(channel[i].line_counter & 0x80);
-                hdma_update(i);
+                await hdma_update(i);
             }
 
             status.irq_lock = true;
         }
 
-        private void hdma_init()
+        private async Task hdma_init()
         {
             uint channels = 0;
             for (uint i = 0; i < 8; i++)
@@ -1129,7 +1132,7 @@ namespace Snes
                 return;
             }
 
-            add_clocks(16);
+            await add_clocks(16);
             for (uint i = 0; i < 8; i++)
             {
                 if (!channel[i].hdma_enabled)
@@ -1140,7 +1143,7 @@ namespace Snes
 
                 channel[i].hdma_addr = channel[i].source_addr;
                 channel[i].line_counter = 0;
-                hdma_update(i);
+                await hdma_update(i);
             }
 
             status.irq_lock = true;

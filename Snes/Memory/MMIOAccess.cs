@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
     class MMIOAccess : Memory
@@ -15,14 +17,14 @@ namespace Snes
             _mmio[addr & 0x7fff] = access;
         }
 
-        public override byte read(uint addr)
+        public override async Task<byte> read(uint addr)
         {
-            return _mmio[addr & 0x7fff].mmio_read(addr);
+            return await _mmio[addr & 0x7fff].mmio_read(addr);
         }
 
-        public override void write(uint addr, byte data)
+        public override async Task write(uint addr, byte data)
         {
-            _mmio[addr & 0x7fff].mmio_write(addr, data);
+            await _mmio[addr & 0x7fff].mmio_write(addr, data);
         }
 
         public MMIOAccess()

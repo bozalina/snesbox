@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -126,7 +127,7 @@ namespace Snes
             }
         }
 
-        public byte read(uint24 addr)
+        public async Task<byte> read(uint24 addr)
         {
 #if CHEAT_SYSTEM
             if (Cheat.cheat.active() && Cheat.cheat.exists((uint)addr))
@@ -139,13 +140,13 @@ namespace Snes
             }
 #endif
             Page p = page[(uint)addr >> 8];
-            return p.access.read(p.offset + (uint)addr);
+            return await p.access.read(p.offset + (uint)addr);
         }
 
-        public void write(uint24 addr, byte data)
+        public async Task write(uint24 addr, byte data)
         {
             Page p = page[(uint)addr >> 8];
-            p.access.write(p.offset + (uint)addr, data);
+            await p.access.write(p.offset + (uint)addr, data);
         }
 
         public bool load_cart()

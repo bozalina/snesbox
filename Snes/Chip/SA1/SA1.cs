@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -14,14 +15,14 @@ namespace Snes
         public byte dma_cc1_read(uint addr) { throw new NotImplementedException(); }
         public void dma_cc2() { throw new NotImplementedException(); }
 
-        public override void op_io() { throw new NotImplementedException(); }
-        public override byte op_read(uint addr) { throw new NotImplementedException(); }
-        public override void op_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public override Task op_io() { throw new NotImplementedException(); }
+        public override Task<byte> op_read(uint addr) { throw new NotImplementedException(); }
+        public override Task op_write(uint addr, byte data) { throw new NotImplementedException(); }
 
         public byte vbr_read(uint addr) { throw new NotImplementedException(); }
 
-        public byte mmio_read(uint addr) { throw new NotImplementedException(); }
-        public void mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
+        public Task<byte> mmio_read(uint addr) { throw new NotImplementedException(); }
+        public Task mmio_write(uint addr, byte data) { throw new NotImplementedException(); }
         public Memory mmio_access(ref uint addr) { throw new NotImplementedException(); }
 
         public MMIO mmio;

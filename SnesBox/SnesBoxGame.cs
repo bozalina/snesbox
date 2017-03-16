@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Snes;
 using SnesBox.Components;
@@ -49,10 +50,10 @@ namespace SnesBox
 			}
 		}
 
-		public void LoadCartridge(string cartridgeName)
+		public async Task LoadCartridge(string cartridgeName)
 		{
 			var cartridge = Content.Load<SFCCartridge>(cartridgeName);
-			LibSnes.LoadCartridgeNormal(null, cartridge.ROM, (uint)cartridge.ROM.Length);
+			await LibSnes.LoadCartridgeNormal(null, cartridge.ROM, (uint)cartridge.ROM.Length);
 		}
 
 		protected override void Initialize()
@@ -63,7 +64,7 @@ namespace SnesBox
 
 			if (!string.IsNullOrEmpty(CartridgeName))
 			{
-				LoadCartridge(CartridgeName);
+				LoadCartridge(CartridgeName).Wait();
 			}
 		}
 
@@ -73,7 +74,7 @@ namespace SnesBox
 			{
 				base.Update(gameTime);
 
-				LibSnes.Run();
+				LibSnes.Run().Wait();
 
 				var frameRate = (IFrameRateService)Services.GetService(typeof(IFrameRateService));
 				Window.Title = string.Format("{0:##} FPS", frameRate.FPS);

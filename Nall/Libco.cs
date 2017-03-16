@@ -2,67 +2,56 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Nall
 {
-   public static class Libco
-   {
-      private static Thread _active;
-      private static Dictionary<Thread, ManualResetEvent> _threads = new Dictionary<Thread, ManualResetEvent>();
+	public static class Libco
+	{
+		private static readonly PauseTokenSource MainPauseToken = new PauseTokenSource();
 
-      public static Thread Active()
-      {
-         if (ReferenceEquals(_active, null))
-         {
-            _active = Thread.CurrentThread;
-         }
-         return _active;
-      }
+		public static Task Create(Func<PauseToken, CancellationToken, Task> entryPoint)
+		{
+			var pauseToken = new PauseTokenSource { IsPaused = true };
+			var cancellationToken = new CancellationTokenSource();
+			Task task = Task.Run(() => entryPoint(pauseToken.Token, cancellationToken.Token), cancellationToken.Token);
+			PauseTokens.Add(task, pauseToken);
+			CancellationTokens.Add(task, cancellationToken);
+			return task;
+		}
 
-      public static Thread Create(string name, int size, ThreadStart entrypoint)
-      {
-         if (ReferenceEquals(_active, null))
-         {
-            _active = Thread.CurrentThread;
-            _threads.Add(_active, new ManualResetEvent(false));
-         }
+		public static void Delete(Task task)
+		{
+			if (CancellationTokens.ContainsKey(task))
+			{
+				CancellationTokens[task].Cancel();
+			}
+		}
 
-         size += 256; /* allocate additional space for storage */
-         size &= ~15; /* align stack to 16-byte boundary */
-         var thread = new Thread(entrypoint) {Name = name};
-         _threads.Add(thread, new ManualResetEvent(false));
-         return thread;
-      }
+		public static void Exit()
+		{
+			foreach (CancellationTokenSource tokenSource in CancellationTokens.Values)
+			{
+				tokenSource.Cancel();
+			}
+		}
 
-      public static void Delete(Thread thread)
-      {
-         thread.Abort();
-      }
+		private static readonly Dictionary<Task, PauseTokenSource> PauseTokens = new Dictionary<Task, PauseTokenSource>();
+		private static readonly Dictionary<Task, CancellationTokenSource> CancellationTokens = new Dictionary<Task, CancellationTokenSource>();
+		private static Task s_active;
 
-      public static void Exit()
-      {
-         foreach (Thread thread in _threads.Keys.Where(thread => !string.IsNullOrEmpty(thread.Name)))
-         {
-            thread.Abort();
-         }
-      }
+		public static async Task Switch(Task task)
+		{
+			Task previousTask = s_active;
+			s_active = task;
 
-      public static void Switch(Thread thread)
-      {
-         Thread previous = _active;
-         _active = thread;
+			PauseTokenSource tokenToPause = previousTask != null ? PauseTokens[previousTask] : MainPauseToken;
+			PauseTokenSource tokenToUnpause = task != null ? PauseTokens[task] : MainPauseToken;
 
-         _threads[previous].Reset();
-         if (_active.ThreadState == ThreadState.Unstarted)
-         {
-            _active.Start();
-         }
-         else
-         {
-            _threads[_active].Set();
-         }
+			tokenToPause.IsPaused = true;
+			tokenToUnpause.IsPaused = false;
 
-         _threads[previous].WaitOne();
-      }
-   }
+			await tokenToPause.WaitWhilePausedAsync();
+		}
+	}
 }

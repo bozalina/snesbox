@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -92,19 +93,19 @@ namespace Snes
             System.system.term();
         }
 
-        public static void Power()
+        public static async Task Power()
         {
-            System.system.power();
+            await System.system.power();
         }
 
-        public static void Reset()
+        public static async Task Reset()
         {
-            System.system.reset();
+			await System.system.reset();
         }
 
-        public static void Run()
+        public static async Task Run()
         {
-            System.system.run();
+            await System.system.run();
         }
 
         public static void Exit()
@@ -117,9 +118,9 @@ namespace Snes
             return System.system.serialize_size;
         }
 
-        public static bool Serialize(byte[] data, uint size)
+        public static async Task<bool> Serialize(byte[] data, uint size)
         {
-            System.system.runtosave();
+            await System.system.runtosave();
             Serializer s = System.system.serialize();
             if (s.size() > size)
             {
@@ -129,10 +130,10 @@ namespace Snes
             return true;
         }
 
-        public static bool Unserialize(byte[] data, uint size)
+        public static async Task<bool> Unserialize(byte[] data, uint size)
         {
             Serializer s = new Serializer(data, size);
-            return System.system.unserialize(s);
+            return await System.system.unserialize(s);
         }
 
         public static void CheatReset()
@@ -148,7 +149,7 @@ namespace Snes
             Cheat.cheat.synchronize();
         }
 
-        public static bool LoadCartridgeNormal(byte[] rom_xml, byte[] rom_data, uint rom_size)
+        public static async Task<bool> LoadCartridgeNormal(byte[] rom_xml, byte[] rom_data, uint rom_size)
         {
             CheatReset();
             if (!ReferenceEquals(rom_data, null))
@@ -157,11 +158,11 @@ namespace Snes
             }
             string xmlrom = (!ReferenceEquals(rom_xml, null)) ? new UTF8Encoding().GetString(rom_xml, 0, rom_xml.Length) : new SnesInformation(rom_data, rom_size).xml_memory_map;
             Cartridge.cartridge.load(Cartridge.Mode.Normal, new string[] { xmlrom });
-            System.system.power();
+            await System.system.power();
             return true;
         }
 
-        public static bool LoadCartridgeBsxSlotted(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] bsx_xml, byte[] bsx_data, uint bsx_size)
+        public static async Task<bool> LoadCartridgeBsxSlotted(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] bsx_xml, byte[] bsx_data, uint bsx_size)
         {
             CheatReset();
             if (!ReferenceEquals(rom_data, null))
@@ -175,11 +176,11 @@ namespace Snes
             }
             string xmlbsx = (!ReferenceEquals(bsx_xml, null)) ? new UTF8Encoding().GetString(bsx_xml, 0, bsx_xml.Length) : new SnesInformation(bsx_data, bsx_size).xml_memory_map;
             Cartridge.cartridge.load(Cartridge.Mode.BsxSlotted, new string[] { xmlrom, xmlbsx });
-            System.system.power();
+            await System.system.power();
             return true;
         }
 
-        public static bool LoadCartridgeBsx(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] bsx_xml, byte[] bsx_data, uint bsx_size)
+        public static async Task<bool> LoadCartridgeBsx(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] bsx_xml, byte[] bsx_data, uint bsx_size)
         {
             CheatReset();
             if (!ReferenceEquals(rom_data, null))
@@ -193,11 +194,11 @@ namespace Snes
             }
             string xmlbsx = (!ReferenceEquals(bsx_xml, null)) ? new UTF8Encoding().GetString(bsx_xml, 0, bsx_xml.Length) : new SnesInformation(bsx_data, bsx_size).xml_memory_map;
             Cartridge.cartridge.load(Cartridge.Mode.Bsx, new string[] { xmlrom, xmlbsx });
-            System.system.power();
+            await System.system.power();
             return true;
         }
 
-        public static bool LoadCartridgeSufamiTurbo(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] sta_xml, byte[] sta_data, uint sta_size, byte[] stb_xml, byte[] stb_data, uint stb_size)
+        public static async Task<bool> LoadCartridgeSufamiTurbo(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] sta_xml, byte[] sta_data, uint sta_size, byte[] stb_xml, byte[] stb_data, uint stb_size)
         {
             CheatReset();
             if (!ReferenceEquals(rom_data, null))
@@ -216,11 +217,11 @@ namespace Snes
             }
             string xmlstb = (!ReferenceEquals(stb_xml, null)) ? new UTF8Encoding().GetString(stb_xml, 0, stb_xml.Length) : new SnesInformation(stb_data, stb_size).xml_memory_map;
             Cartridge.cartridge.load(Cartridge.Mode.SufamiTurbo, new string[] { xmlrom, xmlsta, xmlstb });
-            System.system.power();
+            await System.system.power();
             return true;
         }
 
-        public static bool LoadCartridgeGameBoy(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] dmg_xml, byte[] dmg_data, uint dmg_size)
+        public static async Task<bool> LoadCartridgeGameBoy(byte[] rom_xml, byte[] rom_data, uint rom_size, byte[] dmg_xml, byte[] dmg_data, uint dmg_size)
         {
             CheatReset();
             if (!ReferenceEquals(rom_data, null))
@@ -234,7 +235,7 @@ namespace Snes
             }
             string xmldmg = (!ReferenceEquals(dmg_xml, null)) ? new UTF8Encoding().GetString(dmg_xml, 0, dmg_xml.Length) : new SnesInformation(dmg_data, dmg_size).xml_memory_map;
             Cartridge.cartridge.load(Cartridge.Mode.SuperGameBoy, new string[] { xmlrom, xmldmg });
-            System.system.power();
+            await System.system.power();
             return true;
         }
 

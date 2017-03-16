@@ -1,5 +1,6 @@
 ﻿#if COMPATIBILITY || PERFORMANCE
 using System.IO;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -13,11 +14,11 @@ namespace Snes
             Processor.clock += clocks;
         }
 
-        public void synchronize_smp()
+        public async Task synchronize_smp()
         {
             if (Processor.clock >= 0 && Scheduler.scheduler.sync != Scheduler.SynchronizeMode.All)
             {
-                Libco.Switch(SMP.smp.Processor.thread);
+                await Libco.Switch(SMP.smp.Processor.thread);
             }
         }
 

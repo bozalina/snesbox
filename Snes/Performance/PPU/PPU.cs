@@ -1,5 +1,7 @@
 ﻿#if PERFORMANCE
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Nall;
 
 namespace Snes
@@ -13,11 +15,11 @@ namespace Snes
             Processor.clock += clocks;
         }
 
-        public void synchronize_cpu()
+        public async Task synchronize_cpu()
         {
             if (Processor.clock >= 0 && Scheduler.scheduler.sync != Scheduler.SynchronizeMode.All)
             {
-                Libco.Switch(CPU.cpu.Processor.thread);
+                await Libco.Switch(CPU.cpu.Processor.thread);
             }
         }
 
@@ -43,25 +45,25 @@ namespace Snes
             return regs.pseudo_hires || regs.bgmode == 5 || regs.bgmode == 6;
         }
 
-        public void enter()
+        public async Task enter(CancellationToken cancellationToken)
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (Scheduler.scheduler.sync == Scheduler.SynchronizeMode.All)
                 {
-                    Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
+                    await Scheduler.scheduler.exit(Scheduler.ExitReason.SynchronizeEvent);
                 }
 
                 scanline();
                 if (PPUCounter.vcounter() < display.height && Convert.ToBoolean(PPUCounter.vcounter()))
                 {
-                    add_clocks(512);
+                    await add_clocks(512);
                     render_scanline();
-                    add_clocks(PPUCounter.lineclocks() - 512U);
+                    await add_clocks(PPUCounter.lineclocks() - 512U);
                 }
                 else
                 {
-                    add_clocks(PPUCounter.lineclocks());
+                    await add_clocks(PPUCounter.lineclocks());
                 }
             }
         }
@@ -76,7 +78,7 @@ namespace Snes
 
         public void reset()
         {
-            Processor.create("PPU", Enter, System.system.cpu_frequency);
+            Processor.create(Enter, System.system.cpu_frequency);
             PPUCounter.reset();
             surface = new ushort[512 * 512];
             mmio_reset();
@@ -512,9 +514,9 @@ namespace Snes
             }
         }
 
-        public byte mmio_read(uint addr)
+        public async Task<byte> mmio_read(uint addr)
         {
-            CPU.cpu.synchronize_ppu();
+            await CPU.cpu.synchronize_ppu();
 
             switch (addr & 0xffff)
             {
@@ -668,9 +670,9 @@ namespace Snes
             return CPU.cpu.regs.mdr;
         }
 
-        public void mmio_write(uint addr, byte data)
+        public async Task mmio_write(uint addr, byte data)
         {
-            CPU.cpu.synchronize_ppu();
+            await CPU.cpu.synchronize_ppu();
 
             switch (addr & 0xffff)
             {
@@ -1326,16 +1328,17 @@ namespace Snes
         private Screen screen;
         private Display display = new Display();
 
-        private static void Enter()
+        private static async Task Enter(PauseToken pauseToken, CancellationToken cancellationToken)
         {
-            PPU.ppu.enter();
+	        await pauseToken.WaitWhilePausedAsync();
+            await PPU.ppu.enter(cancellationToken);
         }
 
-        private void add_clocks(uint clocks)
+        private async Task add_clocks(uint clocks)
         {
-            PPUCounter.tick(clocks);
+            await PPUCounter.tick(clocks);
             step(clocks);
-            synchronize_cpu();
+            await synchronize_cpu();
         }
 
         private void render_scanline()

@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
     abstract class Memory
@@ -8,7 +10,7 @@ namespace Snes
             return 0;
         }
 
-        public abstract byte read(uint addr);
-        public abstract void write(uint addr, byte data);
+        public abstract Task<byte> read(uint addr);
+        public abstract Task write(uint addr, byte data);
     }
 }

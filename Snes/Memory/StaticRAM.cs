@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
     class StaticRAM : Memory
@@ -19,17 +21,18 @@ namespace Snes
             return size_;
         }
 
-        public override byte read(uint addr)
+        public override Task<byte> read(uint addr)
         {
-            return data_[addr];
+            return Task.FromResult(data_[addr]);
         }
 
-        public override void write(uint addr, byte n)
+        public override Task write(uint addr, byte n)
         {
             data_[addr] = n;
-        }
+			return Task.FromResult(false);
+		}
 
-        public byte this[uint addr]
+		public byte this[uint addr]
         {
             get
             {

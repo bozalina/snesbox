@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
     class UnmappedMemory : Memory
@@ -10,11 +12,14 @@ namespace Snes
             return 16 * 1024 * 1024;
         }
 
-        public override byte read(uint addr)
+        public override Task<byte> read(uint addr)
         {
-            return CPU.cpu.regs.mdr;
+            return Task.FromResult(CPU.cpu.regs.mdr);
         }
 
-        public override void write(uint addr, byte data) { }
+        public override Task write(uint addr, byte data)
+        {
+	        return Task.FromResult(false);
+        }
     }
 }

@@ -1,7 +1,9 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace Snes
 {
-    public delegate void CPUCoreOp(CPUCoreOpArgument args);
+    public delegate Task CPUCoreOp(CPUCoreOpArgument args);
 
     public class CPUCoreOperation
     {
@@ -14,9 +16,9 @@ namespace Snes
             this.args = args;
         }
 
-        public void Invoke()
+        public async Task Invoke()
         {
-            op(args);
+            await op(args);
         }
     }
 }
